@@ -1,10 +1,11 @@
 from typing import List, Literal, Optional
 from fastapi.responses import StreamingResponse
-from typing import List, Optional, Literal
-from mlx_lm import load, stream_generate, generate
 from fastapi import APIRouter
 from type.Message import Message
 from type.Tool import Tool
+from langchain_community.llms.mlx_pipeline import MLXPipeline
+from langchain_community.chat_models.mlx import ChatMLX
+from langchain_core.messages import HumanMessage
 
 router = APIRouter()
 
@@ -22,12 +23,6 @@ async def chat(
     """
     Generate the next message in a chat with a provided model.
     """
-    messages = (
-        messages
-        if isinstance(messages, list)
-        else [Message(role="user", content=messages)]
-    )
-
     if not model.startswith("mlx-community/"):
         raise ValueError("Model name must start with 'mlx-community/'")
 
@@ -43,18 +38,20 @@ async def chat(
     if keep_alive is not None:
         raise NotImplementedError()
 
-    model_obj, tokenizer = load(model)
+    lc_llm = MLXPipeline.from_model_id(
+        model,
+        pipeline_kwargs={"max_tokens": 10, "temp": 0.1},
+    )
+    lc_model = ChatMLX(llm=lc_llm)
 
-    prompt = tokenizer.apply_chat_template(
-        messages, tokenize=False, add_generation_prompt=True
+    lc_messages = (
+        [HumanMessage(content=message.content) for message in messages]
+        if isinstance(messages, list)
+        else [HumanMessage(content=messages)]
     )
 
     if stream:
-
-        async def async_generator():
-            for item in stream_generate(model_obj, tokenizer, prompt):
-                yield item
-
-        return StreamingResponse(async_generator())
+        raise NotImplementedError()
     else:
-        return generate(model_obj, tokenizer, prompt)
+        response = lc_model.invoke(lc_messages)
+        return response.content
