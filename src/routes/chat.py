@@ -1,18 +1,53 @@
 from typing import List, Literal, Optional
-from fastapi.responses import StreamingResponse
 from fastapi import APIRouter
 from type.Message import Message
 from type.Tool import Tool
-from langchain_community.llms.mlx_pipeline import MLXPipeline
-from langchain_community.chat_models.mlx import ChatMLX
-from langchain_core.messages import HumanMessage
+from outlines import generate, models
+
 
 router = APIRouter()
 
+schema = """{
+    "title": "Character",
+    "type": "object",
+    "properties": {
+        "name": {
+            "title": "Name",
+            "maxLength": 10,
+            "type": "string"
+        },
+        "age": {
+            "title": "Age",
+            "type": "integer"
+        },
+        "armor": {"$ref": "#/definitions/Armor"},
+        "weapon": {"$ref": "#/definitions/Weapon"},
+        "strength": {
+            "title": "Strength",
+            "type": "integer"
+        }
+    },
+    "required": ["name", "age", "armor", "weapon", "strength"],
+    "definitions": {
+        "Armor": {
+            "title": "Armor",
+            "description": "An enumeration.",
+            "enum": ["leather", "chainmail", "plate"],
+            "type": "string"
+        },
+        "Weapon": {
+            "title": "Weapon",
+            "description": "An enumeration.",
+            "enum": ["sword", "axe", "mace", "spear", "bow", "crossbow"],
+            "type": "string"
+        }
+    }
+}"""
+
 
 @router.post("/api/chat")
-async def chat(
-    messages: List[Message] | str,
+def chat(
+    messages: str,  # List[Message] | str,
     model: str = "mlx-community/Llama-3.2-3B-Instruct",
     format: Optional[Literal["json"]] = None,
     options: Optional[dict] = None,
@@ -41,17 +76,6 @@ async def chat(
     if stream:
         raise NotImplementedError()
 
-    lc_llm = MLXPipeline.from_model_id(
-        model,
-        pipeline_kwargs={"max_tokens": 10, "temp": 0.1},
-    )
-    lc_model = ChatMLX(llm=lc_llm)
-
-    lc_messages = (
-        [HumanMessage(content=message.content) for message in messages]
-        if isinstance(messages, list)
-        else [HumanMessage(content=messages)]
-    )
-
-    response = lc_model.invoke(lc_messages)
-    return response.content
+    model_obj = models.mlxlm(model)
+    generator = generate.json(model_obj, schema)
+    return generator(messages)
