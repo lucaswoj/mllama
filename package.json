@@ -14,7 +14,7 @@
     "fix:pytest": "venv/bin/pytest",
     "fix:autoflake": "venv/bin/autoflake --quiet --in-place --recursive --expand-star-imports src stubs",
     "fix": "npm run fix:prettier && npm run fix:autoflake && npm run fix:black && npm run fix:pip && npm run fix:pytest",
-    "start": "venv/bin/uvicorn src.server.server:server --reload",
+    "start": "venv/bin/uvicorn src.server:app --reload",
     "test": "npm run test:mypy && npm run test:pytest && npm run test:black && npm run test:autoflake && npm run test:prettier && npm run test:pip",
     "test:black": "venv/bin/black --check .",
     "test:mypy": "venv/bin/mypy src",
