@@ -79,3 +79,7 @@ def chat(
     model_obj = models.mlxlm(model)
     generator = generate.json(model_obj, schema)
     return generator(messages)
+
+
+if __name__ == "__main__":
+    print(chat("Hello, how are you?"))
