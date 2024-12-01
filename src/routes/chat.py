@@ -1,48 +1,10 @@
 from typing import List, Literal, Optional
 from fastapi import APIRouter
-from type.Message import Message
 from type.Tool import Tool
 from outlines import generate, models
 
 
 router = APIRouter()
-
-schema = """{
-    "title": "Character",
-    "type": "object",
-    "properties": {
-        "name": {
-            "title": "Name",
-            "maxLength": 10,
-            "type": "string"
-        },
-        "age": {
-            "title": "Age",
-            "type": "integer"
-        },
-        "armor": {"$ref": "#/definitions/Armor"},
-        "weapon": {"$ref": "#/definitions/Weapon"},
-        "strength": {
-            "title": "Strength",
-            "type": "integer"
-        }
-    },
-    "required": ["name", "age", "armor", "weapon", "strength"],
-    "definitions": {
-        "Armor": {
-            "title": "Armor",
-            "description": "An enumeration.",
-            "enum": ["leather", "chainmail", "plate"],
-            "type": "string"
-        },
-        "Weapon": {
-            "title": "Weapon",
-            "description": "An enumeration.",
-            "enum": ["sword", "axe", "mace", "spear", "bow", "crossbow"],
-            "type": "string"
-        }
-    }
-}"""
 
 
 @router.post("/api/chat")
@@ -76,8 +38,11 @@ def chat(
     if stream:
         raise NotImplementedError()
 
+    print("ONE")
     model_obj = models.mlxlm(model)
-    generator = generate.json(model_obj, schema)
+    print("TWO")
+    generator = generate.format(model_obj, float)
+    print("THREE")
     return generator(messages)
 
 
