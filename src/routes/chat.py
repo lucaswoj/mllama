@@ -38,6 +38,9 @@ async def chat(
     if keep_alive is not None:
         raise NotImplementedError()
 
+    if stream:
+        raise NotImplementedError()
+
     lc_llm = MLXPipeline.from_model_id(
         model,
         pipeline_kwargs={"max_tokens": 10, "temp": 0.1},
@@ -50,8 +53,5 @@ async def chat(
         else [HumanMessage(content=messages)]
     )
 
-    if stream:
-        raise NotImplementedError()
-    else:
-        response = lc_model.invoke(lc_messages)
-        return response.content
+    response = lc_model.invoke(lc_messages)
+    return response.content
