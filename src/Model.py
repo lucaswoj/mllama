@@ -1,43 +1,23 @@
-# pylint: disable=missing-class-docstring,missing-function-docstring
-"""
-Example of JSON schema decoding with MLX.
-"""
-import argparse
-import json
-import time
-from math import inf
-from operator import itemgetter
-from typing import Iterable, Optional, Union
+from RejectedCompletion import RejectedCompletion
+from ReusableKVCache import ReusableKVCache
+
 
 import mlx.core as mx
-import mlx.nn as nn
-
-from mlx_lm.utils import load
-
 from llm_structured_output import JsonSchemaAcceptorDriver
 from llm_structured_output.util.bitmap import (
     bias_logits,
     count_set_bits,
     enumerate_set_bits,
 )
-from llm_structured_output.util.output import info, bold, bolddim, debug
+from llm_structured_output.util.output import debug
 from llm_structured_output.util.tokenization import HuggingfaceTokenizerHelper
+from mlx_lm.utils import load
 
-from reusable_kv_cache import ReusableKVCache
 
-
-class RejectedCompletion(Exception):
-    """
-    It's rare, but sometimes we reach a state where it's not possible to
-    advance the acceptor. For example, when closing a JSON string we get
-    a higher probability for slanted quotes than straight ones and select
-    the wrong token. At that point, the LLM will continue generating with
-    the prior that the string is closed, but our acceptor will remain in
-    the string-accepting state. This can indicate an issue with the
-    tokenizer vocabulary passed to the acceptor, or a bug in the code
-    used to decode tokens from the LLM. If none of these apply, check that
-    the LLM is actually able to generate JSON, although most are.
-    """
+import time
+from math import inf
+from operator import itemgetter
+from typing import Iterable, Optional, Union
 
 
 class Model:
@@ -342,104 +322,3 @@ class Model:
                     generation_time / 1e3
                 )
             yield generation_result
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description="LLM inference script with schema-constrained sampling"
-    )
-    parser.add_argument(
-        "--model-path",
-        type=str,
-        default="mlx_model",
-        help="The path to the model weights and tokenizer",
-    )
-    parser.add_argument(
-        "--prompt",
-        default="Once upon a midnight dreary",
-        help="The message to be processed by the model",
-    )
-    parser.add_argument(
-        "--max-tokens",
-        "-m",
-        type=int,
-        default=100,
-        help="Maximum number of tokens to generate",
-    )
-    parser.add_argument(
-        "--temp",
-        help="The sampling temperature.",
-        type=float,
-        default=0.0,
-    )
-    parser.add_argument("--seed", type=int, default=None, help="The PRNG seed")
-    parser.add_argument(
-        "--repeat-prompt",
-        action=argparse.BooleanOptionalAction,
-        help="Print prompt before start of generation",
-    )
-    parser.add_argument(
-        "--schema",
-        help="A JSON schema to constrain the output.",
-        type=str,
-        default=None,
-    )
-    parser.add_argument(
-        "--encapsulated",
-        action=argparse.BooleanOptionalAction,
-        help="Whether the LLM is expected to encapsulate the JSON within ```json and ```.",
-    )
-    parser.add_argument(
-        "--preemptive",
-        type=int,
-        default=0,
-        help="If greater than zero, the maximum size of the batch for pre-emptive decoding",
-    )
-
-    args = parser.parse_args()
-
-    info("Loading model from disk.")
-    model = Model()
-    model.load(args.model_path)
-
-    if args.schema is not None:
-        schema = json.loads(args.schema)
-        info("Using schema")
-    else:
-        schema = None
-    info("Starting generation...")
-
-    for result in model.completion(
-        prompt=args.prompt,
-        schema=schema,
-        encapsulated=args.encapsulated,
-        max_tokens=args.max_tokens,
-        temp=args.temp,
-        seed=args.seed,
-        preemptive_batch_size=args.preemptive,
-    ):
-        if result["op"] == "evaluatedPrompt":
-            prompt_token_count = result["token_count"]
-            prompt_time = result["time_ms"]
-            prompt_tps = result["prompt_tps"]
-            if args.repeat_prompt:
-                bolddim(result["prompt"], flush=True)
-        elif result["op"] == "generatedTokens":
-            bold(result["text"], end="", flush=True)
-        elif result["op"] == "stop":
-            end_reason = result["reason"]
-            generated_token_count = result["token_count"]
-            generation_time = result["time_ms"]
-            generation_tps = result["generation_tps"]
-        else:
-            assert False
-
-    print()
-    info(f"End reason: {end_reason}")
-    info(f"Tokens: prompt {prompt_token_count}, generation {generated_token_count}")
-    info(f"Tokens per second: prompt {prompt_tps:.2f}, generation {generation_tps:.2f}")
-    info(f"Total time: prompt {prompt_time:.2f}ms, generation {generation_time:.2f}ms")
-
-
-if __name__ == "__main__":
-    main()

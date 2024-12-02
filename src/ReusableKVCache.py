@@ -1,13 +1,10 @@
-"""
-Helper with improvements over mlx-lm's KVCache.
-"""
-
 import mlx.core as mx
 from mlx_lm.models.cache import KVCache
 
 
 class ReusableKVCache(KVCache):
     """
+    Helper with improvements over mlx-lm's KVCache.
     Usability improvements over KVCache.
     """
 

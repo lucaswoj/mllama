@@ -30,6 +30,7 @@ Jinja2==3.1.4
 jsonschema==4.23.0
 jsonschema-specifications==2024.10.1
 lark==1.2.2
+llm_structured_output==0.0.19
 MarkupSafe==3.0.2
 mlx==0.21.0
 mlx-lm==0.20.1
@@ -44,6 +45,7 @@ numpy==2.1.3
 outlines==0.1.7
 outlines_core==0.1.17
 packaging==24.2
+# Editable Git install with no remote (pal==0.1)
 pandas==2.2.3
 pathspec==0.12.1
 pillow==11.0.0
@@ -60,6 +62,7 @@ pyflakes==3.2.0
 pytest==8.3.4
 pytest-asyncio==0.24.0
 python-dateutil==2.9.0.post0
+python-dotenv==1.0.1
 pytz==2024.2
 PyYAML==6.0.2
 referencing==0.35.1
