@@ -10,15 +10,17 @@ from pydantic import BaseModel
 from llm_structured_output.util.output import info, warning, debug
 from typing import Optional, Union
 from llm_structured_output.util.output import info, bold, bolddim, debug
-
 from chat.Model import Model
 from chat.V1Function import V1Function
-from chat.chat import chat
+from chat.ChatCompletionResponder import ChatCompletionResponder
+from chat.ChatCompletionStreamingResponder import ChatCompletionStreamingResponder
+from chat.ToolCallResponder import ToolCallResponder
+from chat.ToolCallStreamingResponder import ToolCallStreamingResponder
+from llm_structured_output.util.output import debug, info
+import json
 
 load_dotenv()
 
-
-app = FastAPI()
 
 model = Model()
 info("Loading model...")
@@ -27,6 +29,9 @@ try:
     model.load(model_path)
 except KeyError:
     warning("Need to specify MODEL_PATH environment variable")
+
+
+app = FastAPI()
 
 
 @app.exception_handler(RequestValidationError)
@@ -142,3 +147,103 @@ async def post_v1_chat_completions(request: V1ChatCompletionsRequest):
             )
         debug("RESPONSE", response)
         return response
+
+
+async def chat(request: V1ChatCompletionsRequest):
+    messages = request.messages[:]
+
+    # Extract valid functions from the request.
+    functions = []
+    is_legacy_function_call = False
+    if request.tool_choice == "none" or request.tools is None:
+        pass
+    elif request.tool_choice == "auto":
+        functions = [tool.function for tool in request.tools if tool.type == "function"]
+    elif request.tool_choice is not None:
+        functions = [
+            next(
+                tool.function
+                for tool in request.tools
+                if tool.type == "function"
+                and tool.function.name == request.tool_choice.name
+            )
+        ]
+    elif request.function_call == "none" or request.functions is None:
+        pass
+    elif request.function_call == "auto":
+        functions = request.functions
+        is_legacy_function_call = True
+    elif request.function_call is not None:
+        functions = [
+            next(
+                fn for fn in request.functions if fn.name == request.function_call.name
+            )
+        ]
+        is_legacy_function_call = True
+
+    model_name = model_path
+    schema = None
+    responder: ChatCompletionResponder
+    if functions:
+        # If the request includes functions, create a system prompt to instruct the LLM
+        # to use tools, and assemble a JSON schema to steer the LLM output.
+        if request.stream:
+            responder = ToolCallStreamingResponder(
+                model_name,
+                functions,
+                is_legacy_function_call,
+                model,
+            )
+        else:
+            responder = ToolCallResponder(
+                model_name, functions, is_legacy_function_call
+            )
+        if not (request.tool_options and request.tool_options.no_prompt_steering):
+            messages.insert(
+                0,
+                V1ChatMessage(
+                    role=V1ChatMessageRole.SYSTEM,
+                    content=responder.tool_prompt,
+                ),
+            )
+        schema = responder.schema
+    else:
+        if request.response_format:
+            assert request.response_format.type == V1ResponseFormatType.JSON_OBJECT
+            # The request may specify a JSON schema (this option is not in the OpenAI API)
+            if request.response_format.schema:
+                schema = json.loads(request.response_format.schema)
+            else:
+                schema = {"type": "object"}
+        if request.stream:
+            responder = ChatCompletionStreamingResponder(model_name, schema, model)
+        else:
+            responder = ChatCompletionResponder(model_name)
+
+    if schema is not None:
+        debug("Using schema:", schema)
+
+    info("Starting generation...")
+
+    prompt_tokens = None
+
+    for result in model.completion(
+        (msg.model_dump() for msg in messages),
+        schema=schema,
+        max_tokens=request.max_tokens,
+        temp=request.temperature,
+        cache_prompt=True,
+    ):
+        if result["op"] == "evaluatedPrompt":
+            prompt_tokens = result["token_count"]
+        elif result["op"] == "generatedTokens":
+            message = responder.generated_tokens(result["text"])
+            if message:
+                yield message
+        elif result["op"] == "stop":
+            completion_tokens = result["token_count"]
+            yield responder.generation_stopped(
+                result["reason"], prompt_tokens or 0, completion_tokens
+            )
+        else:
+            assert False
