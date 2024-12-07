@@ -1,3 +1,5 @@
+#!/usr/bin/env /Users/lucaswoj/Code/pal/venv/bin/python
+
 from functools import wraps
 import importlib
 import pkgutil
@@ -11,7 +13,7 @@ import typer
 from tool import ToolArg
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv("/Users/lucaswoj/Code/pal/.env")
 
 app = typer.Typer()
 
@@ -21,15 +23,15 @@ def add_command(value):
     @wraps(value)
     def wrapper(*args, **kwargs):
         output = value(*args, **kwargs)
-        if isinstance(output, str):
+        if inspect.isgenerator(output):
+            for item in output:
+                print(item, end="")
+        else:
             formatted_text = pformat(output)
             colorful_text = highlight(
                 formatted_text, PythonLexer(), TerminalFormatter()
             )
             print(colorful_text, end="")
-        elif inspect.isgenerator(output):
-            for item in output:
-                print(item, end="")
 
     signature = inspect.signature(value, eval_str=True)
 
