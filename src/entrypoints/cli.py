@@ -11,6 +11,9 @@ from pygments.formatters import TerminalFormatter
 import inspect
 import typer
 from tool import ToolArg
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = typer.Typer()
 
