@@ -19,9 +19,16 @@ def add_command(value):
     @app.command()
     @wraps(value)
     def wrapper(*args, **kwargs):
-        formatted_text = pformat(value(*args, **kwargs))
-        colorful_text = highlight(formatted_text, PythonLexer(), TerminalFormatter())
-        print(colorful_text, end="")
+        output = value(*args, **kwargs)
+        if isinstance(output, str):
+            formatted_text = pformat()
+            colorful_text = highlight(
+                formatted_text, PythonLexer(), TerminalFormatter()
+            )
+            print(colorful_text, end="")
+        elif inspect.isgenerator(output):
+            for item in output:
+                print(item, end="")
 
     signature = inspect.signature(value, eval_str=True)
 
