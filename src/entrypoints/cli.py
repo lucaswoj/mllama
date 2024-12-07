@@ -2,7 +2,7 @@ from functools import wraps
 import importlib
 import pkgutil
 from pprint import pformat
-from typing import Annotated
+from typing import Annotated, get_args, get_origin, get_type_hints
 from pygments import highlight
 from pygments.lexers import PythonLexer
 from pygments.formatters import TerminalFormatter
@@ -24,11 +24,14 @@ def add_command(value):
     def wrapper(*args, **kwargs):
         cpprint(value(*args, **kwargs))
 
-    for param, annotation in wrapper.__annotations__.items():
-        print(f"param: {param}, annotation: {annotation}")
-        wrapper.__annotations__[param] = Annotated[
-            annotation, typer.Argument(help="FOZ")
-        ]
+    for name, annotations in get_type_hints(value, include_extras=True).items():
+        if hasattr(annotations, "__metadata__"):
+            for annotation in annotations.__metadata__:
+                if isinstance(annotation, ArgDescription):
+                    wrapper.__annotations__[name] = Annotated[
+                        annotations,
+                        typer.Argument(help=annotation.description),
+                    ]
 
     app.command()(wrapper)
 
