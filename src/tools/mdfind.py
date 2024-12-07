@@ -12,7 +12,7 @@ def mdfind(
         Optional[str], ToolArg("The attribute to fetch the value of")
     ] = None,
     onlyin: Annotated[Optional[str], ToolArg("The directory to search within")] = None,
-) -> str:
+):
     """Use macOS Spotlight search to find files."""
     cmd = ["mdfind"]
     if attr:
@@ -27,6 +27,8 @@ def mdfind(
         stderr=subprocess.STDOUT,
         text=True,  # Ensures the output is returned as a string
     )
+    if process.stdout is None:
+        raise RuntimeError("Failed to run mdfind")
     try:
         # Stream the output line by line
         for line in iter(process.stdout.readline, ""):
