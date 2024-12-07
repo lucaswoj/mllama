@@ -11,6 +11,6 @@ def tool(func):
     return wrapper
 
 
-class ArgDescription:
+class ToolArg:
     def __init__(self, description: str):
         self.description = description
