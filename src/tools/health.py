@@ -4,7 +4,6 @@ import os
 import requests
 from datetime import datetime, timedelta
 from dateutil.parser import isoparse
-from pathlib import Path
 
 from tool import tool
 

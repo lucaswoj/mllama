@@ -2,9 +2,7 @@ from functools import wraps
 import importlib
 import pkgutil
 from pprint import pformat
-import sys
-from types import NoneType
-from typing import Annotated, Optional, Union, get_args, get_origin, get_type_hints
+from typing import Annotated, get_type_hints
 from pygments import highlight
 from pygments.lexers import PythonLexer
 from pygments.formatters import TerminalFormatter
@@ -24,7 +22,7 @@ def add_command(value):
     def wrapper(*args, **kwargs):
         output = value(*args, **kwargs)
         if isinstance(output, str):
-            formatted_text = pformat()
+            formatted_text = pformat(output)
             colorful_text = highlight(
                 formatted_text, PythonLexer(), TerminalFormatter()
             )

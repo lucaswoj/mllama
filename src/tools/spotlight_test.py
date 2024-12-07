@@ -1,5 +1,6 @@
 from tools.spotlight import spotlight
 
 
-def smoke_test():
-    spotlight("Hello", limit=1)
+def test_smoke():
+    spotlight("lucaswoj123345")
+    assert True
