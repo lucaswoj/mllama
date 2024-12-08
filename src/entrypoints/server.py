@@ -230,8 +230,12 @@ def generate(request: GenerateRequest):
     generator = mlx_engine.create_generator(
         model,
         tokens,
-        max_tokens=request.options["max_tokens"],
+        max_tokens=(
+            request.options["max_tokens"] if "max_tokens" in request.options else 1024
+        ),
         json_schema=json_schema,
+        repetition_context_size=128,
+        repetition_penalty=1.0,
     )
 
     eval_time = time.time_ns()
