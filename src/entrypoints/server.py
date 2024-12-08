@@ -103,183 +103,183 @@ class AbstractRequest(BaseModel):
     ] = "5m"
 
 
-class GenerateRequest(AbstractRequest):
-    prompt: Annotated[
-        Optional[str], Field(description="the prompt to generate a response for")
-    ] = None
-    suffix: Annotated[
-        Optional[str], Field(description="the text after the model response")
-    ] = None
-    images: Annotated[
-        Optional[List[str]],
-        Field(
-            description="(optional) a list of base64-encoded images (for multimodal models such as llava)"
-        ),
-    ] = None
-    system: Annotated[
-        Optional[str],
-        Field(
-            description="system message to (overrides what is defined in the Modelfile)"
-        ),
-    ] = None
-    template: Annotated[
-        Optional[str],
-        Field(
-            description="the prompt template to use (overrides what is defined in the Modelfile)"
-        ),
-    ] = None
-    raw: Annotated[
-        Optional[bool],
-        Field(
-            description="if true no formatting will be applied to the prompt. You may choose to use the raw parameter if you are specifying a full templated prompt in your request to the API"
-        ),
-    ] = None
-    context: Annotated[
-        Any,
-        Field(
-            description="(deprecated) the context parameter returned from a previous request to /generate, this can be used to keep a short conversational memory",
-        ),
-    ] = None
+# class GenerateRequest(AbstractRequest):
+#     prompt: Annotated[
+#         Optional[str], Field(description="the prompt to generate a response for")
+#     ] = None
+#     suffix: Annotated[
+#         Optional[str], Field(description="the text after the model response")
+#     ] = None
+#     images: Annotated[
+#         Optional[List[str]],
+#         Field(
+#             description="(optional) a list of base64-encoded images (for multimodal models such as llava)"
+#         ),
+#     ] = None
+#     system: Annotated[
+#         Optional[str],
+#         Field(
+#             description="system message to (overrides what is defined in the Modelfile)"
+#         ),
+#     ] = None
+#     template: Annotated[
+#         Optional[str],
+#         Field(
+#             description="the prompt template to use (overrides what is defined in the Modelfile)"
+#         ),
+#     ] = None
+#     raw: Annotated[
+#         Optional[bool],
+#         Field(
+#             description="if true no formatting will be applied to the prompt. You may choose to use the raw parameter if you are specifying a full templated prompt in your request to the API"
+#         ),
+#     ] = None
+#     context: Annotated[
+#         Any,
+#         Field(
+#             description="(deprecated) the context parameter returned from a previous request to /generate, this can be used to keep a short conversational memory",
+#         ),
+#     ] = None
 
 
-class GenerateResponse(BaseModel):
-    model: Annotated[str, Field(description="the name of the model used")]
-    created_at: Annotated[
-        str, Field(description="timestamp when the response was generated")
-    ] = datetime.now().isoformat()
-    response: Annotated[
-        str,
-        Field(
-            description="empty if the response was streamed, if not streamed, this will contain the full response"
-        ),
-    ] = ""
-    done: Annotated[
-        bool, Field(description="true if the stream has ended, false otherwise")
-    ] = False
-    done_reason: Optional[str] = None
+# class GenerateResponse(BaseModel):
+#     model: Annotated[str, Field(description="the name of the model used")]
+#     created_at: Annotated[
+#         str, Field(description="timestamp when the response was generated")
+#     ] = datetime.now().isoformat()
+#     response: Annotated[
+#         str,
+#         Field(
+#             description="empty if the response was streamed, if not streamed, this will contain the full response"
+#         ),
+#     ] = ""
+#     done: Annotated[
+#         bool, Field(description="true if the stream has ended, false otherwise")
+#     ] = False
+#     done_reason: Optional[str] = None
 
 
-class GenerateEndResponse(GenerateResponse):
-    context: Annotated[
-        Any,
-        Field(
-            description="(deprecated) an encoding of the conversation used in this response, this can be sent in the next request to keep a conversational memory",
-        ),
-    ] = None
-    total_duration: Annotated[
-        int, Field(description="time spent generating the response (in nanoseconds)")
-    ]
-    load_duration: Annotated[
-        int, Field(description="time spent in nanoseconds loading the model")
-    ]
-    prompt_eval_count: Annotated[
-        int, Field(description="number of tokens in the prompt")
-    ]
-    prompt_eval_duration: Annotated[
-        int, Field(description="time spent in nanoseconds evaluating the prompt")
-    ]
-    eval_count: Annotated[int, Field(description="number of tokens in the response")]
-    eval_duration: Annotated[
-        int, Field(description="time in nanoseconds spent generating the response")
-    ]
+# class GenerateEndResponse(GenerateResponse):
+#     context: Annotated[
+#         Any,
+#         Field(
+#             description="(deprecated) an encoding of the conversation used in this response, this can be sent in the next request to keep a conversational memory",
+#         ),
+#     ] = None
+#     total_duration: Annotated[
+#         int, Field(description="time spent generating the response (in nanoseconds)")
+#     ]
+#     load_duration: Annotated[
+#         int, Field(description="time spent in nanoseconds loading the model")
+#     ]
+#     prompt_eval_count: Annotated[
+#         int, Field(description="number of tokens in the prompt")
+#     ]
+#     prompt_eval_duration: Annotated[
+#         int, Field(description="time spent in nanoseconds evaluating the prompt")
+#     ]
+#     eval_count: Annotated[int, Field(description="number of tokens in the response")]
+#     eval_duration: Annotated[
+#         int, Field(description="time in nanoseconds spent generating the response")
+#     ]
 
 
-@server.post("/api/generate")
-def generate(request: GenerateRequest):
-    start_time = time.time_ns()
+# @server.post("/api/generate")
+# def generate(request: GenerateRequest):
+#     start_time = time.time_ns()
 
-    if request.system:
-        raise HTTPException(status_code=501, detail="'system' not implemented")
+#     if request.system:
+#         raise HTTPException(status_code=501, detail="'system' not implemented")
 
-    if request.suffix:
-        raise HTTPException(status_code=501, detail="'suffix' not implemented")
+#     if request.suffix:
+#         raise HTTPException(status_code=501, detail="'suffix' not implemented")
 
-    if request.images:
-        raise HTTPException(status_code=501, detail="'images' not implemented")
+#     if request.images:
+#         raise HTTPException(status_code=501, detail="'images' not implemented")
 
-    if request.template:
-        raise HTTPException(status_code=501, detail="'template' not implemented")
+#     if request.template:
+#         raise HTTPException(status_code=501, detail="'template' not implemented")
 
-    if request.raw:
-        raise HTTPException(status_code=501, detail="'raw' not implemented")
+#     if request.raw:
+#         raise HTTPException(status_code=501, detail="'raw' not implemented")
 
-    if request.keep_alive == 0:
-        unload_model(request.model)
-        return GenerateResponse(model=request.model, done_reason="unload")
+#     if request.keep_alive == 0:
+#         unload_model(request.model)
+#         return GenerateResponse(model=request.model, done_reason="unload")
 
-    model = load_model(request.model, request.keep_alive)
+#     model = load_model(request.model, request.keep_alive)
 
-    if request.prompt is None:
-        return GenerateResponse(model=request.model, response="")
+#     if request.prompt is None:
+#         return GenerateResponse(model=request.model, response="")
 
-    load_time = time.time_ns()
+#     load_time = time.time_ns()
 
-    tokens = mlx_engine.tokenize(
-        model,
-        request.prompt,
-    )
+#     tokens = mlx_engine.tokenize(
+#         model,
+#         request.prompt,
+#     )
 
-    prompt_eval_time = time.time_ns()
+#     prompt_eval_time = time.time_ns()
 
-    json_schema = None
-    if request.format == "json":
-        json_schema = '{"type": "object", "additionalProperties": true}'
-    elif request.format is not None:
-        json_schema = json.dumps(request.format)
+#     json_schema = None
+#     if request.format == "json":
+#         json_schema = '{"type": "object", "additionalProperties": true}'
+#     elif request.format is not None:
+#         json_schema = json.dumps(request.format)
 
-    generator = mlx_engine.create_generator(
-        model,
-        tokens,
-        max_tokens=(
-            request.options["max_tokens"] if "max_tokens" in request.options else 1024
-        ),
-        json_schema=json_schema,
-        repetition_context_size=10,
-        repetition_penalty=1.2,
-        stop_strings=["<|eot_id|>"],
-    )
+#     generator = mlx_engine.create_generator(
+#         model,
+#         tokens,
+#         max_tokens=(
+#             request.options["max_tokens"] if "max_tokens" in request.options else 1024
+#         ),
+#         json_schema=json_schema,
+#         repetition_context_size=10,
+#         repetition_penalty=1.2,
+#         stop_strings=["<|eot_id|>", "#+#"],
+#     )
 
-    eval_time = time.time_ns()
+#     eval_time = time.time_ns()
 
-    def get_end_response(response: str, done_reason: Optional[str] = None):
-        end_time = time.time_ns()
+#     def get_end_response(response: str, done_reason: Optional[str] = None):
+#         end_time = time.time_ns()
 
-        return GenerateEndResponse(
-            model=request.model,
-            response=response,
-            done=True,
-            total_duration=end_time - start_time,
-            load_duration=load_time - start_time,
-            prompt_eval_count=len(tokens),
-            prompt_eval_duration=prompt_eval_time - load_time,
-            eval_count=0,
-            eval_duration=end_time - eval_time,
-            done_reason=done_reason,
-        ).model_dump_json()
+#         return GenerateEndResponse(
+#             model=request.model,
+#             response=response,
+#             done=True,
+#             total_duration=end_time - start_time,
+#             load_duration=load_time - start_time,
+#             prompt_eval_count=len(tokens),
+#             prompt_eval_duration=prompt_eval_time - load_time,
+#             eval_count=0,
+#             eval_duration=end_time - eval_time,
+#             done_reason=done_reason,
+#         ).model_dump_json()
 
-    if request.stream:
+#     if request.stream:
 
-        def inner():
-            for response_chunk in generator:
-                yield GenerateResponse(
-                    model=request.model,
-                    response=response_chunk.text,
-                ).model_dump_json()
-                if response_chunk.stop_condition:
-                    yield get_end_response(
-                        "", response_chunk.stop_condition.stop_reason
-                    )
-                    break
+#         def inner():
+#             for response_chunk in generator:
+#                 yield GenerateResponse(
+#                     model=request.model,
+#                     response=response_chunk.text,
+#                 ).model_dump_json()
+#                 if response_chunk.stop_condition:
+#                     yield get_end_response(
+#                         "", response_chunk.stop_condition.stop_reason
+#                     )
+#                     break
 
-        return StreamingResponse(inner())
-    else:
-        response = ""
-        for response_chunk in generator:
-            response += response_chunk.text
-            if response_chunk.stop_condition:
-                return get_end_response(
-                    response, response_chunk.stop_condition.stop_reason
-                )
+#         return StreamingResponse(inner())
+#     else:
+#         response = ""
+#         for response_chunk in generator:
+#             response += response_chunk.text
+#             if response_chunk.stop_condition:
+#                 return get_end_response(
+#                     response, response_chunk.stop_condition.stop_reason
+#                 )
 
 
 class ToolFunction(BaseModel):
@@ -340,14 +340,11 @@ class ChatEndResponse(ChatResponse):
 def chat(request: ChatRequest):
     start_time = time.time_ns()
 
-    if request.keep_alive == 0:
-        unload_model(request.model)
-        return GenerateResponse(model=request.model, done_reason="unload")
-
     model = load_model(request.model, request.keep_alive)
 
     load_time = time.time_ns()
 
+    # TODO improve this, different models have different templates
     model.tokenizer.chat_template = open("./src/template.jinja").read()
     prompt = model.tokenizer.apply_chat_template(
         [message.model_dump() for message in request.messages],
@@ -359,24 +356,42 @@ def chat(request: ChatRequest):
 
     tokens = mlx_engine.tokenize(model, prompt)
 
-    prompt_eval_time = time.time_ns()
-
     json_schema = None
     if request.format == "json":
         json_schema = '{"type": "object", "additionalProperties": true}'
     elif request.format is not None:
         json_schema = json.dumps(request.format)
 
+    prompt_eval_time = 0
+
+    def prompt_progress_callback(progress: float):
+        global prompt_eval_time
+        if progress == 1:
+            prompt_eval_time = time.time_ns()
+
+    # TODO explore what other parameters we can set here
     generator = mlx_engine.create_generator(
         model,
         tokens,
+        images_b64=None,
+        json_schema=json_schema,
         max_tokens=(
             request.options["max_tokens"] if "max_tokens" in request.options else 1024
         ),
-        json_schema=json_schema,
+        prompt_progress_callback=prompt_progress_callback,
         repetition_context_size=20,
         repetition_penalty=1.1,
-        stop_strings=["<|eot_id|>"],
+        seed=None,
+        # See https://ollama.com/library/llama3.2/blobs/56bb8bd477a5
+        # See https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct/discussions/4?utm_source=chatgpt.com
+        stop_strings=[
+            "<|start_header_id|>",
+            "<|end_header_id|>",
+            "<|eot_id|>",
+        ],
+        temp=None,
+        top_p=None,
+        min_tokens_to_keep=None,
     )
 
     eval_time = time.time_ns()
@@ -406,10 +421,8 @@ def chat(request: ChatRequest):
                     message=Message(role="assistant", content=response_chunk.text),
                 ).model_dump_json()
                 if response_chunk.stop_condition:
-                    yield get_end_response(
-                        "", response_chunk.stop_condition.stop_reason
-                    )
                     break
+            yield get_end_response("")
 
         return StreamingResponse(inner())
     else:
@@ -420,6 +433,7 @@ def chat(request: ChatRequest):
                 return get_end_response(
                     response, response_chunk.stop_condition.stop_reason
                 )
+        return get_end_response(response)
 
 
 class CreateModelRequest(BaseModel):
@@ -484,6 +498,21 @@ def tags():
             TagInfo(
                 name="Qwen/Qwen2-0.5B",
                 model="Qwen/Qwen2-0.5B",
+                modified_at="2024-12-07T13:43:12.129079239-08:00",
+                size=123456,
+                digest="3028237cc8c52fea4e77185d72cc997b2e90392791f7c82fe1c71995d56e642d",
+                details=TagDetails(
+                    format="gguf",
+                    parent_model="",
+                    family="TfODO",
+                    families=["TODO"],
+                    parameter_size="3B",
+                    quantization_level="TODO",
+                ),
+            ),
+            TagInfo(
+                name="mlx-community/Llama-3.3-70B-Instruct-8bit",
+                model="mlx-community/Llama-3.3-70B-Instruct-8bit",
                 modified_at="2024-12-07T13:43:12.129079239-08:00",
                 size=123456,
                 digest="3028237cc8c52fea4e77185d72cc997b2e90392791f7c82fe1c71995d56e642d",
