@@ -27,18 +27,34 @@ model_cache: Dict[
 
 
 def load_model(name: str):
-    if not name in model_cache:
+    """Loads a model into the cache or extends its expiration."""
+    if name not in model_cache:
         path = huggingface_hub.snapshot_download(repo_id=name)
         model = mlx_engine.load_model(path, max_kv_size=4096, trust_remote_code=False)
-        model_cache[name] = (model, datetime.now())
-
-    model, prev_exp = model_cache[name]
-    model_cache[name] = (model, max(prev_exp, datetime.now() + timedelta(minutes=5)))
+        model_cache[name] = (model, datetime.now() + timedelta(minutes=5))
+    else:
+        model, prev_exp = model_cache[name]
+        # Extend expiration time to ensure it stays in cache if accessed
+        model_cache[name] = (
+            model,
+            max(prev_exp, datetime.now() + timedelta(minutes=5)),
+        )
     return model
 
 
 def unload_model(name: str):
-    del model_cache[name]
+    """Unloads a model from the cache."""
+    if name in model_cache:
+        del model_cache[name]
+
+
+def clean_model_cache():
+    """Periodically checks and removes expired models from the cache."""
+    now = datetime.now()
+    expired_models = [name for name, (_, exp) in model_cache.items() if exp < now]
+    for name in expired_models:
+        unload_model(name)
+        print(f"Unloaded expired model: {name}")
 
 
 class GenerateRequest(BaseModel):
