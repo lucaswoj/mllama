@@ -235,7 +235,7 @@ def generate(request: GenerateRequest):
         ),
         json_schema=json_schema,
         repetition_context_size=128,
-        repetition_penalty=1.0,
+        repetition_penalty=1.1,
     )
 
     eval_time = time.time_ns()
