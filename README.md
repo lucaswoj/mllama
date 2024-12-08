@@ -10,7 +10,8 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 - [ ] Dynamically populate endpoint that lists models
 - [ ] Add custom templates and stop tokens per model
 - [ ] Figure out why " #+#" is a Llama stop token
-- [ ] Figure out why Enchanted can't recieve Llama streaming messages
+- [ ] Add more helpful log messages
+- [ ] Figure out why the first words of each message seem to be getting truncated.
 
 ## Later
 
