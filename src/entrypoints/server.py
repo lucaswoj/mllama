@@ -311,9 +311,6 @@ class ChatResponse(BaseModel):
         str, Field(description="timestamp when the response was generated")
     ] = datetime.now().isoformat()
     message: Message
-    done: Annotated[
-        bool, Field(description="true if the stream has ended, false otherwise")
-    ] = False
 
 
 class ChatEndResponse(ChatResponse):
@@ -333,7 +330,10 @@ class ChatEndResponse(ChatResponse):
     eval_duration: Annotated[
         int, Field(description="time in nanoseconds spent generating the response")
     ]
-    done_reason: Optional[str]
+    done: Annotated[
+        bool, Field(description="true if the stream has ended, false otherwise")
+    ] = True
+    done_reason: Optional[str] = None
 
 
 @server.post("/api/chat")
@@ -356,18 +356,15 @@ async def chat(request: ChatRequest):
 
     tokens = mlx_engine.tokenize(model, prompt)
 
+    prompt_eval_time = time.time_ns()
+
     json_schema = None
     if request.format == "json":
         json_schema = '{"type": "object", "additionalProperties": true}'
     elif request.format is not None:
         json_schema = json.dumps(request.format)
 
-    prompt_eval_time = 0
-
-    def prompt_progress_callback(progress: float):
-        global prompt_eval_time
-        if progress == 1:
-            prompt_eval_time = time.time_ns()
+    eval_time = time.time_ns()
 
     generator = mlx_engine.create_generator(
         model,
@@ -376,8 +373,7 @@ async def chat(request: ChatRequest):
         json_schema=json_schema,
         max_tokens=(
             request.options["max_tokens"] if "max_tokens" in request.options else 1024
-        ),  # TODO find more elegant way to pass this
-        prompt_progress_callback=prompt_progress_callback,
+        ),
         repetition_context_size=20,
         repetition_penalty=1.1,
         seed=None,
@@ -388,8 +384,6 @@ async def chat(request: ChatRequest):
         top_p=None,
         min_tokens_to_keep=None,
     )
-
-    eval_time = time.time_ns()
 
     def get_end_response(response: str, done_reason: Optional[str] = None):
         end_time = time.time_ns()
@@ -409,28 +403,23 @@ async def chat(request: ChatRequest):
 
     if request.stream:
 
-        async def inner():
+        def inner():
             for response_chunk in generator:
-                print(f"response_chunk: {response_chunk.text}")
                 yield ChatResponse(
                     model=request.model,
                     message=Message(role="assistant", content=response_chunk.text),
                 ).model_dump_json()
                 if response_chunk.stop_condition:
                     break
-            print("done")
-            yield get_end_response("", "done")
-            return
+            return get_end_response("", "done")
 
         return StreamingResponse(inner())
     else:
         response = ""
         for response_chunk in generator:
             response += response_chunk.text
-            print(f"response_chunk: {response_chunk.text}")
             if response_chunk.stop_condition:
                 break
-        print("done")
         return get_end_response(response, "done")
 
 
