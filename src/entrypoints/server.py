@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 import time
 from functools import cache
 from fastapi import FastAPI, HTTPException
@@ -170,10 +171,17 @@ def generate(request: GenerateRequest):
 
     prompt_eval_time = time.time_ns()
 
+    json_schema = None
+    if request.format == "json":
+        json_schema = '{"type": "object", "additionalProperties": true}'
+    elif request.format is not None:
+        json_schema = json.dumps(request.format)
+
     generator = mlx_engine.create_generator(
         model,
         tokens,
         max_tokens=request.options["max_tokens"],
+        json_schema=json_schema,
     )
 
     eval_time = time.time_ns()
