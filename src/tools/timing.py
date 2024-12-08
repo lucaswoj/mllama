@@ -1,5 +1,5 @@
 import os
-from typing import Iterable, List, Literal, Optional
+from typing import Literal, Optional
 from pydantic import BaseModel
 import requests
 from datetime import datetime, timedelta
@@ -41,7 +41,7 @@ def get_report(project_ids, days):
     end_date = datetime.now().strftime("%Y-%m-%d")
     params = {
         "include_app_usage": "1",
-        "include_child_projects": "0",
+        "include_child_projects": "1",
         "include_team_members": "0",
         "start_date_min": start_date,
         "start_date_max": end_date,
