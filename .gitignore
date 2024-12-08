@@ -8,3 +8,4 @@ node_modules
 .env
 baseline_inbox
 cache
+.DS_Store
