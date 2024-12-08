@@ -314,7 +314,6 @@ class ChatResponse(BaseModel):
     done: Annotated[
         bool, Field(description="true if the stream has ended, false otherwise")
     ] = False
-    done_reason: Optional[str] = None
 
 
 class ChatEndResponse(ChatResponse):
@@ -334,10 +333,11 @@ class ChatEndResponse(ChatResponse):
     eval_duration: Annotated[
         int, Field(description="time in nanoseconds spent generating the response")
     ]
+    done_reason: Optional[str]
 
 
 @server.post("/api/chat")
-def chat(request: ChatRequest):
+async def chat(request: ChatRequest):
     start_time = time.time_ns()
 
     model = load_model(request.model, request.keep_alive)
@@ -369,7 +369,6 @@ def chat(request: ChatRequest):
         if progress == 1:
             prompt_eval_time = time.time_ns()
 
-    # TODO explore what other parameters we can set here
     generator = mlx_engine.create_generator(
         model,
         tokens,
@@ -377,18 +376,14 @@ def chat(request: ChatRequest):
         json_schema=json_schema,
         max_tokens=(
             request.options["max_tokens"] if "max_tokens" in request.options else 1024
-        ),
+        ),  # TODO find more elegant way to pass this
         prompt_progress_callback=prompt_progress_callback,
         repetition_context_size=20,
         repetition_penalty=1.1,
         seed=None,
         # See https://ollama.com/library/llama3.2/blobs/56bb8bd477a5
         # See https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct/discussions/4?utm_source=chatgpt.com
-        stop_strings=[
-            "<|start_header_id|>",
-            "<|end_header_id|>",
-            "<|eot_id|>",
-        ],
+        stop_strings=["<|start_header_id|>", "<|end_header_id|>", "<|eot_id|>", " #+#"],
         temp=None,
         top_p=None,
         min_tokens_to_keep=None,
@@ -414,26 +409,29 @@ def chat(request: ChatRequest):
 
     if request.stream:
 
-        def inner():
+        async def inner():
             for response_chunk in generator:
+                print(f"response_chunk: {response_chunk.text}")
                 yield ChatResponse(
                     model=request.model,
                     message=Message(role="assistant", content=response_chunk.text),
                 ).model_dump_json()
                 if response_chunk.stop_condition:
                     break
-            yield get_end_response("")
+            print("done")
+            yield get_end_response("", "done")
+            return
 
         return StreamingResponse(inner())
     else:
         response = ""
         for response_chunk in generator:
             response += response_chunk.text
+            print(f"response_chunk: {response_chunk.text}")
             if response_chunk.stop_condition:
-                return get_end_response(
-                    response, response_chunk.stop_condition.stop_reason
-                )
-        return get_end_response(response)
+                break
+        print("done")
+        return get_end_response(response, "done")
 
 
 class CreateModelRequest(BaseModel):
