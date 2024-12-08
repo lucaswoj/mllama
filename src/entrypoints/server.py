@@ -61,7 +61,6 @@ def clean_model_cache():
         expired_models = [name for name, (_, exp) in model_cache.items() if exp < now]
         for name in expired_models:
             unload_model(name)
-            print(f"Unloaded expired model: {name}")
         time.sleep(10)  # Run the cleanup every 10 seconds
 
 
