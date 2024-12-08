@@ -36,7 +36,23 @@ def load_model(name: str, keep_alive: str):
         raise ValueError(f"Invalid keep_alive value: {keep_alive}")
 
     if name not in model_cache:
-        path = huggingface_hub.snapshot_download(repo_id=name)
+        repo = next(
+            (
+                repo
+                for repo in huggingface_hub.scan_cache_dir().repos
+                if repo.repo_id == name and list(repo.revisions)[0]
+            ),
+            None,
+        )
+
+        if repo is None:
+            raise HTTPException(status_code=404, detail=f"Model {name} not found")
+        path = next((revision.snapshot_path for revision in repo.revisions), None)
+        if path is None:
+            raise HTTPException(status_code=404, detail=f"Model {name} not found")
+
+        print(f"Loading model {name} from {path}")
+
         model = mlx_engine.load_model(path, max_kv_size=4096, trust_remote_code=False)
         model_cache[name] = (model, datetime.now() + delta)
     else:
@@ -357,8 +373,6 @@ def chat(request: ChatRequest):
         tokenize=False,
     )
 
-    print(f"prompt: {prompt}")
-
     tokens = mlx_engine.tokenize(model, prompt)
 
     prompt_eval_time = time.time_ns()
@@ -474,53 +488,26 @@ class TagsResponse(BaseModel):
 
 @server.get("/api/tags")
 def tags():
+    print(huggingface_hub.scan_cache_dir().repos)
+
     return TagsResponse(
         models=[
             TagInfo(
-                name="mlx-community/Llama-3.2-3B-8bit",
-                model="mlx-community/Llama-3.2-3B-8bit",
+                name=f"{repo.repo_id}",
+                model=f"{repo.repo_id}",
                 modified_at="2024-12-07T13:43:12.129079239-08:00",
-                size=123456,
+                size=repo.size_on_disk,
                 digest="3028237cc8c52fea4e77185d72cc997b2e90392791f7c82fe1c71995d56e642d",
                 details=TagDetails(
                     format="gguf",
                     parent_model="",
-                    family="TfODO",
+                    family="TODO",
                     families=["TODO"],
                     parameter_size="3B",
                     quantization_level="TODO",
                 ),
-            ),
-            TagInfo(
-                name="Qwen/Qwen2-0.5B",
-                model="Qwen/Qwen2-0.5B",
-                modified_at="2024-12-07T13:43:12.129079239-08:00",
-                size=123456,
-                digest="3028237cc8c52fea4e77185d72cc997b2e90392791f7c82fe1c71995d56e642d",
-                details=TagDetails(
-                    format="gguf",
-                    parent_model="",
-                    family="TfODO",
-                    families=["TODO"],
-                    parameter_size="3B",
-                    quantization_level="TODO",
-                ),
-            ),
-            TagInfo(
-                name="mlx-community/Llama-3.3-70B-Instruct-8bit",
-                model="mlx-community/Llama-3.3-70B-Instruct-8bit",
-                modified_at="2024-12-07T13:43:12.129079239-08:00",
-                size=123456,
-                digest="3028237cc8c52fea4e77185d72cc997b2e90392791f7c82fe1c71995d56e642d",
-                details=TagDetails(
-                    format="gguf",
-                    parent_model="",
-                    family="TfODO",
-                    families=["TODO"],
-                    parameter_size="3B",
-                    quantization_level="TODO",
-                ),
-            ),
+            )
+            for repo in huggingface_hub.scan_cache_dir().repos
         ]
     )
 

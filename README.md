@@ -12,6 +12,8 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 - [ ] Figure out why " #+#" is a Llama stop token
 - [ ] Add more helpful log messages
 - [ ] Figure out why the first words of each message seem to be getting truncated.
+- [ ] Move endpoints into separate files
+- [ ] Abstract out common code shared between generate and chat endpoints
 
 ## Later
 
