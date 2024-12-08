@@ -1,10 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import time
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from typing import Annotated, Literal, Optional, List, Dict, Any
+from typing import Annotated, Literal, Optional, List, Dict, Any, Tuple
 import mlx_engine
 import huggingface_hub
 import mlx_engine.model_kit
@@ -16,18 +16,25 @@ server = FastAPI()
 
 model_cache: Dict[
     str,
-    mlx_engine.model_kit.ModelKit | mlx_engine.vision.vision_model_kit.VisionModelKit,
+    Tuple[
+        (
+            mlx_engine.model_kit.ModelKit
+            | mlx_engine.vision.vision_model_kit.VisionModelKit
+        ),
+        datetime,
+    ],
 ] = {}
 
 
 def load_model(name: str):
     if not name in model_cache:
         path = huggingface_hub.snapshot_download(repo_id=name)
-        model_cache[name] = mlx_engine.load_model(
-            path, max_kv_size=4096, trust_remote_code=False
-        )
+        model = mlx_engine.load_model(path, max_kv_size=4096, trust_remote_code=False)
+        model_cache[name] = (model, datetime.now())
 
-    return model_cache[name]
+    model, prev_exp = model_cache[name]
+    model_cache[name] = (model, max(prev_exp, datetime.now() + timedelta(minutes=5)))
+    return model
 
 
 def unload_model(name: str):

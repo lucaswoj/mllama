@@ -48,7 +48,6 @@ def test_generate_format_json():
         )
     )
 
-    print(response.response)
     parsed = json.loads(response.response)
     assert parsed is not None
 
@@ -64,6 +63,5 @@ def test_generate_format_schema():
         )
     )
 
-    print(response.response)
     parsed = json.loads(response.response)
     assert parsed["foo"] == True or parsed["foo"] == False
