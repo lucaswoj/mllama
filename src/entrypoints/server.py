@@ -1,26 +1,37 @@
 from datetime import datetime
 import json
 import time
-from functools import cache
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
 import mlx_engine
 import huggingface_hub
+import mlx_engine.model_kit
+import mlx_engine.vision
+import mlx_engine.vision.vision_model_kit
 
 server = FastAPI()
 
 
-@cache
+model_cache: Dict[
+    str,
+    mlx_engine.model_kit.ModelKit | mlx_engine.vision.vision_model_kit.VisionModelKit,
+] = {}
+
+
 def load_model(name: str):
-    path = huggingface_hub.snapshot_download(repo_id=name)
-    print(path)
-    return mlx_engine.load_model(path, max_kv_size=4096, trust_remote_code=False)
+    if not name in model_cache:
+        path = huggingface_hub.snapshot_download(repo_id=name)
+        model_cache[name] = mlx_engine.load_model(
+            path, max_kv_size=4096, trust_remote_code=False
+        )
+
+    return model_cache[name]
 
 
 def unload_model(name: str):
-    raise NotImplementedError("Not Implemented")
+    del model_cache[name]
 
 
 class GenerateRequest(BaseModel):

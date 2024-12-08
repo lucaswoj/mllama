@@ -7,7 +7,7 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 ## TODO
 
 - [ ] Implement model loader caching with timeout and explicit unloading
-- [ ] Integrate model loader with hugging face hub
+- [x] Integrate model loader with hugging face hub
 
 ## Later
 
@@ -22,3 +22,4 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 - [ ] Add support for more model options keys
 - [ ] Add support for `suffix` option
 - [ ] Add support for `images` option and multimodal models
+- [ ] Create mypy stubs for untyped modules
