@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import json
+import threading
 import time
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
@@ -50,11 +51,17 @@ def unload_model(name: str):
 
 def clean_model_cache():
     """Periodically checks and removes expired models from the cache."""
-    now = datetime.now()
-    expired_models = [name for name, (_, exp) in model_cache.items() if exp < now]
-    for name in expired_models:
-        unload_model(name)
-        print(f"Unloaded expired model: {name}")
+    while True:
+        now = datetime.now()
+        expired_models = [name for name, (_, exp) in model_cache.items() if exp < now]
+        for name in expired_models:
+            unload_model(name)
+            print(f"Unloaded expired model: {name}")
+        time.sleep(10)  # Run the cleanup every 10 seconds
+
+
+clean_model_cache_thread = threading.Thread(target=clean_model_cache, daemon=True)
+clean_model_cache_thread.start()
 
 
 class GenerateRequest(BaseModel):
