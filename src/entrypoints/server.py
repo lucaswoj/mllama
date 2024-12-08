@@ -36,18 +36,7 @@ def load_model(name: str, keep_alive: str):
         raise ValueError(f"Invalid keep_alive value: {keep_alive}")
 
     if name not in model_cache:
-        repo = next(
-            (
-                repo
-                for repo in huggingface_hub.scan_cache_dir().repos
-                if repo.repo_id == name and list(repo.revisions)[0]
-            ),
-            None,
-        )
-
-        if repo is None:
-            raise HTTPException(status_code=404, detail=f"Model {name} not found")
-        path = next((revision.snapshot_path for revision in repo.revisions), None)
+        path = huggingface_hub.snapshot_download(name, local_files_only=True)
         if path is None:
             raise HTTPException(status_code=404, detail=f"Model {name} not found")
 
@@ -559,20 +548,17 @@ def delete_model(request: DeleteModelRequest):
     raise HTTPException(status_code=501, detail="Not implemented")
 
 
-class PullModelRequest(BaseModel):
+class PullRequest(BaseModel):
     # uses `model:tag` format
     model: str
     insecure: Optional[bool]
     stream: Optional[bool]
 
 
-class PullModelResponse(BaseModel):
-    status: str
-
-
-@server.post("/api/pull", response_model=PullModelResponse)
-def pull_model(request: PullModelRequest):
-    raise HTTPException(status_code=501, detail="Not implemented")
+@server.post("/api/pull")
+def pull(request: PullRequest):
+    huggingface_hub.snapshot_download(request.model)
+    return {"status": "success"}
 
 
 class PushModelRequest(BaseModel):

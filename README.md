@@ -7,7 +7,6 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 ## Now
 
 - [ ] Dont download models from the chat endpoint, require use of pull
-- [ ] Dynamically populate endpoint that lists models
 - [ ] Add custom templates and stop tokens per model
 - [ ] Figure out why " #+#" is a Llama stop token
 - [ ] Add more helpful log messages
@@ -27,3 +26,4 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 - [ ] Fix warning `Field "model_info" in ShowModelInformationResponse has conflict with protected namespace "model_".`
 - [ ] Add support for more model options keys
 - [ ] Add support for `suffix` option
+- [ ] Add progress messages to pull_model endpoint
