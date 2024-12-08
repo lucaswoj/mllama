@@ -1,6 +1,6 @@
 import json
 import pytest
-from entrypoints.server import GenerateRequest, generate
+from entrypoints.server import ChatRequest, GenerateRequest, Message, chat, generate
 
 
 model = "Qwen/Qwen2-0.5B"
@@ -65,3 +65,21 @@ def test_generate_format_schema():
 
     parsed = json.loads(response.response)
     assert parsed["foo"] == True or parsed["foo"] == False
+
+
+def test_chat():
+    response = chat(
+        ChatRequest(
+            model=model,
+            options={"max_tokens": MAX_TOKENS},
+            stream=False,
+            messages=[
+                Message(
+                    role="user",
+                    content="Why is the sky blue?",
+                )
+            ],
+        )
+    )
+
+    assert len(response.message.content) > 0

@@ -8,10 +8,12 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 
 - [x] Implement model loader caching with timeout and explicit unloading
 - [x] Integrate model loader with hugging face hub
-- [ ] Add support for `template` / `raw` options
+- [ ] Add support for tools
 
 ## Later
 
+- [ ] Add support for `template` / `raw` options
+- [ ] Add support for `images` option and multimodal models
 - [ ] Directly import `mlx_engine` from vendor directory without adding a symlink
 - [ ] Prune unnused pip packages
 - [ ] Hook up `eval_count` response field
@@ -21,5 +23,4 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 
 - [ ] Add support for more model options keys
 - [ ] Add support for `suffix` option
-- [ ] Add support for `images` option and multimodal models
 - [ ] Create mypy stubs for untyped modules
