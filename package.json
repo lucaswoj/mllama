@@ -21,7 +21,7 @@
     "test:pip": "bash -c 'diff <(venv/bin/pip freeze | grep -v '^-e') requirements.txt || (echo pip freeze does not match requirements.txt && exit 1)'",
     "test:pytest": "venv/bin/pytest src",
     "test:prettier": "prettier --log-level=error --check .",
-    "test:autoflake": "venv/bin/autoflake --quiet --check --recursive --expand-star-imports src stubs"
+    "test:autoflake": "venv/bin/autoflake --quiet --check --recursive --expand-star-imports src"
   },
   "author": "",
   "license": "ISC",

@@ -7,13 +7,16 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
 import mlx_engine
+import huggingface_hub
 
 server = FastAPI()
 
 
 @cache
 def load_model(name: str):
-    return mlx_engine.load_model(name, max_kv_size=4096, trust_remote_code=False)
+    path = huggingface_hub.snapshot_download(repo_id=name)
+    print(path)
+    return mlx_engine.load_model(path, max_kv_size=4096, trust_remote_code=False)
 
 
 def unload_model(name: str):
@@ -79,8 +82,7 @@ class GenerateRequest(BaseModel):
     context: Annotated[
         Any,
         Field(
-            deprecated="Deprecated!",
-            description="the context parameter returned from a previous request to /generate, this can be used to keep a short conversational memory",
+            description="(deprecated) the context parameter returned from a previous request to /generate, this can be used to keep a short conversational memory",
         ),
     ] = None
 
@@ -106,8 +108,7 @@ class GenerateEndResponse(GenerateResponse):
     context: Annotated[
         Any,
         Field(
-            deprecated="Deprecated!",
-            description="an encoding of the conversation used in this response, this can be sent in the next request to keep a conversational memory",
+            description="(deprecated) an encoding of the conversation used in this response, this can be sent in the next request to keep a conversational memory",
         ),
     ] = None
     total_duration: Annotated[

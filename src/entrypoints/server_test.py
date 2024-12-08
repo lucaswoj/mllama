@@ -3,7 +3,7 @@ import pytest
 from entrypoints.server import GenerateRequest, generate
 
 
-model = "/Users/lucaswoj/.cache/huggingface/hub/models--Qwen--Qwen2-0.5B/snapshots/91d2aff3f957f99e4c74c962f2f408dcc88a18d8"
+model = "Qwen/Qwen2-0.5B"
 MAX_TOKENS = 12
 
 
