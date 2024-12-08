@@ -3,7 +3,6 @@
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
 
-  "editor.indentSize": 4,
   "editor.formatOnSave": true,
   "editor.formatOnSaveMode": "file",
   "editor.defaultFormatter": "esbenp.prettier-vscode",

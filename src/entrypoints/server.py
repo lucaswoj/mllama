@@ -3,37 +3,22 @@ import time
 from functools import cache
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
-import outlines
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
+import mlx_engine
 
 server = FastAPI()
 
 
-class ToolFunctionParameter(BaseModel):
-    type: str
-    description: Optional[str]
-    enum: Optional[List[str]]
-    required: Optional[List[str]]
-    properties: Optional[Dict[str, "ToolFunctionParameter"]]
+# TODO add keep_alive parameter
+@cache
+def load_model(name: str):
+    return mlx_engine.load_model(name, max_kv_size=4096, trust_remote_code=False)
 
 
-class ToolFunction(BaseModel):
-    name: str
-    description: Optional[str]
-    parameters: ToolFunctionParameter
-
-
-class Tool(BaseModel):
-    type: str
-    function: ToolFunction
-
-
-class Message(BaseModel):
-    role: str
-    content: Optional[str]
-    images: Optional[List[str]]
-    tool_calls: Optional[List[Tool]]
+def unload_model(name: str):
+    # TODO implemented unload model
+    raise NotImplementedError("Not Implemented")
 
 
 class GenerateRequest(BaseModel):
@@ -101,7 +86,7 @@ class GenerateRequest(BaseModel):
     ] = None
 
 
-class GenerateStreamResponse(BaseModel):
+class GenerateResponse(BaseModel):
     model: Annotated[str, Field(description="the name of the model used")]
     created_at: Annotated[
         str, Field(description="timestamp when the response was generated")
@@ -115,14 +100,10 @@ class GenerateStreamResponse(BaseModel):
     done: Annotated[
         bool, Field(description="true if the stream has ended, false otherwise")
     ] = False
+    done_reason: Optional[str] = None
 
 
-class GenerateUnloadResponse(GenerateStreamResponse):
-    done: Literal[True] = True
-    done_reason: Literal["unload"] = "unload"
-
-
-class GenerateResponse(GenerateStreamResponse):
+class GenerateEndResponse(GenerateResponse):
     context: Annotated[
         Any,
         Field(
@@ -148,100 +129,134 @@ class GenerateResponse(GenerateStreamResponse):
     ]
 
 
-@cache
-def load_model(name: str):
-    # TODO add keep_alive parameter
-    if name.startswith("mlx-community/"):
-        return outlines.models.mlxlm(name)
-    else:
-        return outlines.models.transformers(name)
-
-
-def unload_model(name: str):
-    raise NotImplementedError("Not Implemented")
-
-
 @server.post("/api/generate")
 def generate(request: GenerateRequest):
     start_time = time.time_ns()
 
-    if request.keep_alive == 0:
-        unload_model(request.model)
-        return GenerateUnloadResponse(model=request.model)
-
-    model = load_model(request.model)
-
-    if request.prompt is None:
-        return GenerateStreamResponse(model=request.model, response="")
-
-    load_time = time.time_ns()
-
     if request.suffix:
+        # TODO
         raise HTTPException(status_code=501, detail="'suffix' not implemented")
 
     if request.images:
+        # TODO
         raise HTTPException(status_code=501, detail="'images' not implemented")
 
     if request.template:
+        # TODO
         raise HTTPException(status_code=501, detail="'template' not implemented")
 
     if request.raw:
+        # TODO
         raise HTTPException(status_code=501, detail="'raw' not implemented")
 
     if request.keep_alive:
+        # TODO
         raise HTTPException(status_code=501, detail="'keep_alive' not implemented")
 
     if set(request.options.keys()) - set(["max_tokens"]):
+        # TODO
         raise HTTPException(
             status_code=501,
             detail=f"'options' keys '{request.options.keys()}' not implemented",
         )
 
-    if request.format is None:
-        generator = outlines.generate.text(model)
-    elif request.format == "json":
-        generator = outlines.generate.json(model, Dict[str, Any])
-    else:
-        generator = outlines.generate.json(model, request.format)
+    if request.keep_alive == 0:
+        unload_model(request.model)
+        return GenerateResponse(model=request.model, done_reason="unload")
 
-    generator_time = time.time_ns()
+    model = load_model(request.model)
 
-    def get_end(response: str):
+    if request.prompt is None:
+        return GenerateResponse(model=request.model, response="")
+
+    load_time = time.time_ns()
+
+    tokens = mlx_engine.tokenize(
+        model,
+        request.prompt,
+    )
+
+    # TODO
+    # images_base64 = []
+    # if request.images:
+    #     if isinstance(request.images, str):
+    #         request.images = [request.images]
+    #     images_base64 = [image_to_base64(img_path) for img_path in request.images]
+
+    prompt_eval_time = time.time_ns()
+
+    generator = mlx_engine.create_generator(
+        model,
+        tokens,
+        # images_b64=images_base64,
+        max_tokens=request.options["max_tokens"],
+    )
+
+    eval_time = time.time_ns()
+
+    def get_end_response(response: str, done_reason: Optional[str] = None):
         end_time = time.time_ns()
 
-        return GenerateResponse(
+        return GenerateEndResponse(
             model=request.model,
             response=response,
             done=True,
             total_duration=end_time - start_time,
             load_duration=load_time - start_time,
             prompt_eval_count=0,  # TODO
-            prompt_eval_duration=generator_time - load_time,
+            prompt_eval_duration=prompt_eval_time - load_time,
             eval_count=0,  # TODO
-            eval_duration=end_time - generator_time,
+            eval_duration=end_time - eval_time,
+            done_reason=done_reason,
         )
 
     if request.stream:
 
         def inner():
-            for response in generator.stream(
-                request.prompt, max_tokens=request.options["max_tokens"]
-            ):
-                yield GenerateStreamResponse(
+            for response in generator:
+                yield GenerateResponse(
                     model=request.model,
-                    response=response,
+                    response=response.text,
                 )
 
-            yield get_end("")
+            yield get_end_response("")
 
         return StreamingResponse(inner())
     else:
-        return get_end(
-            generator(
-                request.prompt,
-                max_tokens=request.options["max_tokens"],
-            )
-        )
+        response = ""
+        for response_chunk in generator:
+            response += response_chunk.text
+            if response_chunk.stop_condition:
+                return get_end_response(
+                    response, response_chunk.stop_condition.stop_reason
+                )
+        return get_end_response(response)
+
+
+class ToolFunctionParameter(BaseModel):
+    type: str
+    description: Optional[str]
+    enum: Optional[List[str]]
+    required: Optional[List[str]]
+    properties: Optional[Dict[str, "ToolFunctionParameter"]]
+
+
+class ToolFunction(BaseModel):
+    name: str
+    description: Optional[str]
+    parameters: ToolFunctionParameter
+
+
+class Tool(BaseModel):
+    type: str
+    function: ToolFunction
+
+
+class Message(BaseModel):
+    role: str
+    content: Optional[str]
+    images: Optional[List[str]]
+    tool_calls: Optional[List[Tool]]
 
 
 class ChatRequest(BaseModel):
