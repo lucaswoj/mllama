@@ -234,8 +234,9 @@ def generate(request: GenerateRequest):
             request.options["max_tokens"] if "max_tokens" in request.options else 1024
         ),
         json_schema=json_schema,
-        repetition_context_size=128,
+        repetition_context_size=20,
         repetition_penalty=1.1,
+        stop_strings=["<|eot_id|>"],
     )
 
     eval_time = time.time_ns()
@@ -264,8 +265,11 @@ def generate(request: GenerateRequest):
                     model=request.model,
                     response=response_chunk.text,
                 ).model_dump_json()
-
-            yield get_end_response("")
+                if response_chunk.stop_condition:
+                    yield get_end_response(
+                        "", response_chunk.stop_condition.stop_reason
+                    )
+                    break
 
         return StreamingResponse(inner())
     else:
@@ -276,7 +280,6 @@ def generate(request: GenerateRequest):
                 return get_end_response(
                     response, response_chunk.stop_condition.stop_reason
                 )
-        return get_end_response(response)
 
 
 class ToolFunction(BaseModel):
@@ -371,6 +374,9 @@ def chat(request: ChatRequest):
             request.options["max_tokens"] if "max_tokens" in request.options else 1024
         ),
         json_schema=json_schema,
+        repetition_context_size=20,
+        repetition_penalty=1.1,
+        stop_strings=["<|eot_id|>"],
     )
 
     eval_time = time.time_ns()
@@ -399,8 +405,11 @@ def chat(request: ChatRequest):
                     model=request.model,
                     message=Message(role="assistant", content=response_chunk.text),
                 ).model_dump_json()
-
-            yield get_end_response("")
+                if response_chunk.stop_condition:
+                    yield get_end_response(
+                        "", response_chunk.stop_condition.stop_reason
+                    )
+                    break
 
         return StreamingResponse(inner())
     else:
@@ -411,7 +420,6 @@ def chat(request: ChatRequest):
                 return get_end_response(
                     response, response_chunk.stop_condition.stop_reason
                 )
-        return get_end_response(response)
 
 
 class CreateModelRequest(BaseModel):
@@ -472,7 +480,22 @@ def tags():
                     parameter_size="3B",
                     quantization_level="TODO",
                 ),
-            )
+            ),
+            TagInfo(
+                name="Qwen/Qwen2-0.5B",
+                model="Qwen/Qwen2-0.5B",
+                modified_at="2024-12-07T13:43:12.129079239-08:00",
+                size=123456,
+                digest="3028237cc8c52fea4e77185d72cc997b2e90392791f7c82fe1c71995d56e642d",
+                details=TagDetails(
+                    format="gguf",
+                    parent_model="",
+                    family="TfODO",
+                    families=["TODO"],
+                    parameter_size="3B",
+                    quantization_level="TODO",
+                ),
+            ),
         ]
     )
 
