@@ -38,7 +38,9 @@ class Message(BaseModel):
 
 class GenerateRequest(BaseModel):
     model: Annotated[str, Field(description="the model name")]
-    prompt: Annotated[str, Field(description="the prompt to generate a response for")]
+    prompt: Annotated[
+        Optional[str], Field(description="the prompt to generate a response for")
+    ] = None
     suffix: Annotated[
         Optional[str], Field(description="the text after the model response")
     ] = None
@@ -103,16 +105,21 @@ class GenerateStreamResponse(BaseModel):
     model: Annotated[str, Field(description="the name of the model used")]
     created_at: Annotated[
         str, Field(description="timestamp when the response was generated")
-    ]
+    ] = datetime.now().isoformat()
     response: Annotated[
         str,
         Field(
             description="empty if the response was streamed, if not streamed, this will contain the full response"
         ),
-    ]
+    ] = ""
     done: Annotated[
         bool, Field(description="true if the stream has ended, false otherwise")
-    ]
+    ] = False
+
+
+class GenerateUnloadResponse(GenerateStreamResponse):
+    done: Literal[True] = True
+    done_reason: Literal["unload"] = "unload"
 
 
 class GenerateResponse(GenerateStreamResponse):
@@ -142,18 +149,30 @@ class GenerateResponse(GenerateStreamResponse):
 
 
 @cache
-def get_model(name: str):
+def load_model(name: str):
+    # TODO add keep_alive parameter
     if name.startswith("mlx-community/"):
         return outlines.models.mlxlm(name)
     else:
         return outlines.models.transformers(name)
 
 
+def unload_model(name: str):
+    raise NotImplementedError("Not Implemented")
+
+
 @server.post("/api/generate")
 def generate(request: GenerateRequest):
     start_time = time.time_ns()
 
-    model = get_model(request.model)
+    if request.keep_alive == 0:
+        unload_model(request.model)
+        return GenerateUnloadResponse(model=request.model)
+
+    model = load_model(request.model)
+
+    if request.prompt is None:
+        return GenerateStreamResponse(model=request.model, response="")
 
     load_time = time.time_ns()
 
@@ -192,7 +211,6 @@ def generate(request: GenerateRequest):
 
         return GenerateResponse(
             model=request.model,
-            created_at=datetime.now().isoformat(),
             response=response,
             done=True,
             total_duration=end_time - start_time,
@@ -211,9 +229,7 @@ def generate(request: GenerateRequest):
             ):
                 yield GenerateStreamResponse(
                     model=request.model,
-                    created_at=datetime.now().isoformat(),
                     response=response,
-                    done=False,
                 )
 
             yield get_end("")
