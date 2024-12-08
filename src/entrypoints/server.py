@@ -290,7 +290,7 @@ class Message(BaseModel):
     role: Literal["user", "assistant", "system", "tool"]
     content: Optional[str]
     images: List[str] = []
-    tool_calls: List[Tool] = []
+    # tool_calls: List[Tool] = []
 
 
 class ChatRequest(AbstractRequest):
@@ -341,11 +341,11 @@ def chat(request: ChatRequest):
 
     load_time = time.time_ns()
 
-    chat_template = open("./src/template.jinja").read()
-
-    model.tokenizer.chat_template = chat_template
+    model.tokenizer.chat_template = open("./src/template.jinja").read()
     prompt = model.tokenizer.apply_chat_template(
-        request.messages, add_generation_prompt=True, tokenize=False
+        [message.model_dump() for message in request.messages],
+        add_generation_prompt=True,
+        tokenize=False,
     )
 
     print(f"prompt: {prompt}")
