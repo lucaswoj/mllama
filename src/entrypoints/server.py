@@ -10,14 +10,12 @@ import mlx_engine
 server = FastAPI()
 
 
-# TODO add keep_alive parameter
 @cache
 def load_model(name: str):
     return mlx_engine.load_model(name, max_kv_size=4096, trust_remote_code=False)
 
 
 def unload_model(name: str):
-    # TODO implemented unload model
     raise NotImplementedError("Not Implemented")
 
 
@@ -134,27 +132,21 @@ def generate(request: GenerateRequest):
     start_time = time.time_ns()
 
     if request.suffix:
-        # TODO
         raise HTTPException(status_code=501, detail="'suffix' not implemented")
 
     if request.images:
-        # TODO
         raise HTTPException(status_code=501, detail="'images' not implemented")
 
     if request.template:
-        # TODO
         raise HTTPException(status_code=501, detail="'template' not implemented")
 
     if request.raw:
-        # TODO
         raise HTTPException(status_code=501, detail="'raw' not implemented")
 
     if request.keep_alive:
-        # TODO
         raise HTTPException(status_code=501, detail="'keep_alive' not implemented")
 
     if set(request.options.keys()) - set(["max_tokens"]):
-        # TODO
         raise HTTPException(
             status_code=501,
             detail=f"'options' keys '{request.options.keys()}' not implemented",
@@ -176,19 +168,11 @@ def generate(request: GenerateRequest):
         request.prompt,
     )
 
-    # TODO
-    # images_base64 = []
-    # if request.images:
-    #     if isinstance(request.images, str):
-    #         request.images = [request.images]
-    #     images_base64 = [image_to_base64(img_path) for img_path in request.images]
-
     prompt_eval_time = time.time_ns()
 
     generator = mlx_engine.create_generator(
         model,
         tokens,
-        # images_b64=images_base64,
         max_tokens=request.options["max_tokens"],
     )
 
@@ -203,9 +187,9 @@ def generate(request: GenerateRequest):
             done=True,
             total_duration=end_time - start_time,
             load_duration=load_time - start_time,
-            prompt_eval_count=0,  # TODO
+            prompt_eval_count=len(tokens),
             prompt_eval_duration=prompt_eval_time - load_time,
-            eval_count=0,  # TODO
+            eval_count=0,
             eval_duration=end_time - eval_time,
             done_reason=done_reason,
         )

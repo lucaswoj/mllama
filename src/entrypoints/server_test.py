@@ -17,7 +17,7 @@ async def test_generate_stream():
     async for response_chunk in stream.body_iterator:
         response += response_chunk.response
 
-    assert response is not None
+    assert len(response) > 0
 
 
 def test_generate_no_stream():
@@ -30,4 +30,4 @@ def test_generate_no_stream():
         )
     )
 
-    assert response.response is not None
+    assert len(response.response) > 0
