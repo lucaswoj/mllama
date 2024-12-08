@@ -6,8 +6,9 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 
 ## TODO
 
-- [ ] Implement model loader caching with timeout and explicit unloading
+- [x] Implement model loader caching with timeout and explicit unloading
 - [x] Integrate model loader with hugging face hub
+- [ ] Add support for `template` / `raw` options
 
 ## Later
 
@@ -15,7 +16,6 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 - [ ] Prune unnused pip packages
 - [ ] Hook up `eval_count` response field
 - [ ] Fix warning `Field "model_info" in ShowModelInformationResponse has conflict with protected namespace "model_".`
-- [ ] Add support for template / raw options
 
 ## Someday Maybe
 
