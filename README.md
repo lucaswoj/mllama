@@ -9,6 +9,8 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 - [x] Implement model loader caching with timeout and explicit unloading
 - [x] Integrate model loader with hugging face hub
 - [ ] Add support for tools
+- [ ] Dont download models from the chat endpoint, require use of pull
+- [ ] Dynamically populate response from tags endpoint
 
 ## Later
 

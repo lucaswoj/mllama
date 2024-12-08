@@ -12,6 +12,7 @@ import mlx_engine.model_kit
 import mlx_engine.vision
 import mlx_engine.vision.vision_model_kit
 
+
 server = FastAPI()
 
 
@@ -66,6 +67,12 @@ def clean_model_cache():
 
 clean_model_cache_thread = threading.Thread(target=clean_model_cache, daemon=True)
 clean_model_cache_thread.start()
+
+
+@server.get("/")
+@server.head("/")
+def root():
+    return "Pal is running"
 
 
 class AbstractRequest(BaseModel):
@@ -196,12 +203,6 @@ def generate(request: GenerateRequest):
     if request.raw:
         raise HTTPException(status_code=501, detail="'raw' not implemented")
 
-    if set(request.options.keys()) - set(["max_tokens"]):
-        raise HTTPException(
-            status_code=501,
-            detail=f"'options' keys '{request.options.keys()}' not implemented",
-        )
-
     if request.keep_alive == 0:
         unload_model(request.model)
         return GenerateResponse(model=request.model, done_reason="unload")
@@ -249,16 +250,16 @@ def generate(request: GenerateRequest):
             eval_count=0,
             eval_duration=end_time - eval_time,
             done_reason=done_reason,
-        )
+        ).model_dump_json()
 
     if request.stream:
 
         def inner():
-            for response in generator:
+            for response_chunk in generator:
                 yield GenerateResponse(
                     model=request.model,
-                    response=response.text,
-                )
+                    response=response_chunk.text,
+                ).model_dump_json()
 
             yield get_end_response("")
 
@@ -332,12 +333,6 @@ class ChatEndResponse(ChatResponse):
 def chat(request: ChatRequest):
     start_time = time.time_ns()
 
-    if set(request.options.keys()) - set(["max_tokens"]):
-        raise HTTPException(
-            status_code=501,
-            detail=f"'options' keys '{request.options.keys()}' not implemented",
-        )
-
     if request.keep_alive == 0:
         unload_model(request.model)
         return GenerateResponse(model=request.model, done_reason="unload")
@@ -346,12 +341,16 @@ def chat(request: ChatRequest):
 
     load_time = time.time_ns()
 
-    tokens = mlx_engine.tokenize(
-        model,
-        model.tokenizer.apply_chat_template(
-            request.messages, tokenize=False, add_generation_prompt=True
-        ),
+    chat_template = open("./src/template.jinja").read()
+
+    model.tokenizer.chat_template = chat_template
+    prompt = model.tokenizer.apply_chat_template(
+        request.messages, add_generation_prompt=True, tokenize=False
     )
+
+    print(f"prompt: {prompt}")
+
+    tokens = mlx_engine.tokenize(model, prompt)
 
     prompt_eval_time = time.time_ns()
 
@@ -364,7 +363,9 @@ def chat(request: ChatRequest):
     generator = mlx_engine.create_generator(
         model,
         tokens,
-        max_tokens=request.options["max_tokens"],
+        max_tokens=(
+            request.options["max_tokens"] if "max_tokens" in request.options else 1024
+        ),
         json_schema=json_schema,
     )
 
@@ -384,16 +385,16 @@ def chat(request: ChatRequest):
             eval_count=0,
             eval_duration=end_time - eval_time,
             done_reason=done_reason,
-        )
+        ).model_dump_json()
 
     if request.stream:
 
         def inner():
-            for response in generator:
+            for response_chunk in generator:
                 yield ChatResponse(
                     model=request.model,
-                    message=Message(role="assistant", content=response),
-                )
+                    message=Message(role="assistant", content=response_chunk.text),
+                ).model_dump_json()
 
             yield get_end_response("")
 
@@ -427,13 +428,49 @@ def create_model(request: CreateModelRequest):
     raise HTTPException(status_code=501, detail="Not implemented")
 
 
-class ListLocalModelsResponse(BaseModel):
-    models: List[Dict[str, Any]]
+class TagDetails(BaseModel):
+    parent_model: str
+    format: str
+    family: str
+    families: Optional[List[str]]
+    parameter_size: str
+    quantization_level: str
 
 
-@server.get("/api/tags", response_model=ListLocalModelsResponse)
-def list_local_models():
-    raise HTTPException(status_code=501, detail="Not implemented")
+class TagInfo(BaseModel):
+    name: str
+    model: str
+    modified_at: str
+    size: int
+    digest: str
+    details: TagDetails
+
+
+class TagsResponse(BaseModel):
+    models: List[TagInfo]
+
+
+@server.get("/api/tags")
+def tags():
+    return TagsResponse(
+        models=[
+            TagInfo(
+                name="mlx-community/Llama-3.2-3B-8bit",
+                model="mlx-community/Llama-3.2-3B-8bit",
+                modified_at="2024-12-07T13:43:12.129079239-08:00",
+                size=123456,
+                digest="3028237cc8c52fea4e77185d72cc997b2e90392791f7c82fe1c71995d56e642d",
+                details=TagDetails(
+                    format="gguf",
+                    parent_model="",
+                    family="TfODO",
+                    families=["TODO"],
+                    parameter_size="3B",
+                    quantization_level="TODO",
+                ),
+            )
+        ]
+    )
 
 
 class ShowModelInformationRequest(BaseModel):
