@@ -172,9 +172,6 @@ def generate(request: GenerateRequest):
     if request.keep_alive:
         raise HTTPException(status_code=501, detail="'keep_alive' not implemented")
 
-    if request.context:
-        raise HTTPException(status_code=501, detail="'context' not implemented")
-
     if set(request.options.keys()) - set(["max_tokens"]):
         raise HTTPException(
             status_code=501,
