@@ -27,18 +27,23 @@ model_cache: Dict[
 ] = {}
 
 
-def load_model(name: str):
+def load_model(name: str, keep_alive: str):
     """Loads a model into the cache or extends its expiration."""
+    if keep_alive.endswith("m"):
+        delta = timedelta(minutes=int(keep_alive[:-1]))
+    else:
+        raise ValueError(f"Invalid keep_alive value: {keep_alive}")
+
     if name not in model_cache:
         path = huggingface_hub.snapshot_download(repo_id=name)
         model = mlx_engine.load_model(path, max_kv_size=4096, trust_remote_code=False)
-        model_cache[name] = (model, datetime.now() + timedelta(minutes=5))
+        model_cache[name] = (model, datetime.now() + delta)
     else:
         model, prev_exp = model_cache[name]
         # Extend expiration time to ensure it stays in cache if accessed
         model_cache[name] = (
             model,
-            max(prev_exp, datetime.now() + timedelta(minutes=5)),
+            max(prev_exp, datetime.now() + delta),
         )
     return model
 
@@ -115,11 +120,11 @@ class GenerateRequest(BaseModel):
         ),
     ] = None
     keep_alive: Annotated[
-        Optional[str],
+        str,
         Field(
             description="controls how long the model will stay loaded into memory following the request (default: 5m)"
         ),
-    ] = None
+    ] = "5m"
     context: Annotated[
         Any,
         Field(
@@ -186,9 +191,6 @@ def generate(request: GenerateRequest):
     if request.raw:
         raise HTTPException(status_code=501, detail="'raw' not implemented")
 
-    if request.keep_alive:
-        raise HTTPException(status_code=501, detail="'keep_alive' not implemented")
-
     if set(request.options.keys()) - set(["max_tokens"]):
         raise HTTPException(
             status_code=501,
@@ -199,7 +201,7 @@ def generate(request: GenerateRequest):
         unload_model(request.model)
         return GenerateResponse(model=request.model, done_reason="unload")
 
-    model = load_model(request.model)
+    model = load_model(request.model, request.keep_alive)
 
     if request.prompt is None:
         return GenerateResponse(model=request.model, response="")
