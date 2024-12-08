@@ -51,3 +51,19 @@ def test_generate_format_json():
     print(response.response)
     parsed = json.loads(response.response)
     assert parsed is not None
+
+
+def test_generate_format_schema():
+    response = generate(
+        GenerateRequest(
+            model=model,
+            prompt='Please return this exact object {"foo": true}',
+            options={"max_tokens": MAX_TOKENS},
+            stream=False,
+            format={"type": "object", "properties": {"foo": {"type": "boolean"}}},
+        )
+    )
+
+    print(response.response)
+    parsed = json.loads(response.response)
+    assert parsed is not None
