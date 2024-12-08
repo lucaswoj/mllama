@@ -55,11 +55,11 @@ class GenerateRequest(BaseModel):
         ),
     ] = None
     options: Annotated[
-        Optional[Dict[str, Any]],
+        Dict[str, Any],
         Field(
             description="additional model parameters listed in the documentation for the Modelfile such as temperature"
         ),
-    ] = None
+    ] = {}
     system: Annotated[
         Optional[str],
         Field(
@@ -175,6 +175,12 @@ def generate(request: GenerateRequest):
     if request.context:
         raise HTTPException(status_code=501, detail="'context' not implemented")
 
+    if set(request.options.keys()) - set(["max_tokens"]):
+        raise HTTPException(
+            status_code=501,
+            detail=f"'options' keys '{request.options.keys()}' not implemented",
+        )
+
     if request.format is None:
         generator = outlines.generate.text(model)
     elif request.format == "json":
@@ -220,12 +226,12 @@ def generate(request: GenerateRequest):
         return get_end(
             generator(
                 request.prompt,
-                max_tokens=((request.options or {})["max_tokens"]),
+                max_tokens=request.options["max_tokens"],
             )
         )
 
 
-class GenerateChatGenerateRequest(BaseModel):
+class ChatRequest(BaseModel):
     # uses `model:tag` format
     model: str
     messages: List[Message]
@@ -236,7 +242,7 @@ class GenerateChatGenerateRequest(BaseModel):
     keep_alive: Optional[str]
 
 
-class GenerateChatGenerateResponse(BaseModel):
+class ChatResponse(BaseModel):
     # uses `model:tag` format
     model: str
     created_at: str
@@ -258,8 +264,8 @@ class GenerateChatGenerateResponse(BaseModel):
     eval_duration: Optional[int]
 
 
-@server.post("/api/chat", response_model=GenerateChatGenerateResponse)
-def generate_chat_Generate(request: GenerateChatGenerateRequest):
+@server.post("/api/chat", response_model=ChatResponse)
+def generate_chat_Generate(request: ChatRequest):
     raise HTTPException(status_code=501, detail="Not implemented")
 
 
