@@ -234,8 +234,8 @@ def generate(request: GenerateRequest):
             request.options["max_tokens"] if "max_tokens" in request.options else 1024
         ),
         json_schema=json_schema,
-        repetition_context_size=20,
-        repetition_penalty=1.1,
+        repetition_context_size=10,
+        repetition_penalty=1.2,
         stop_strings=["<|eot_id|>"],
     )
 
