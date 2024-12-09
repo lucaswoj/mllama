@@ -57,12 +57,19 @@ class ShowModelInformationRequest(BaseModel):
     verbose: Optional[bool]
 
 
+prev_protected_namespaces = BaseModel.model_config.get("protected_namespaces", ())
+BaseModel.model_config["protected_namespaces"] = ()
+
+
 class ShowModelInformationResponse(BaseModel):
     modelfile: str
     parameters: str
     template: str
     details: Dict[str, Any]
     model_info: Dict[str, Any]
+
+
+BaseModel.model_config["protected_namespaces"] = prev_protected_namespaces
 
 
 @server.post("/api/show", response_model=ShowModelInformationResponse)

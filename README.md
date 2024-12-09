@@ -8,9 +8,7 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 - [ ] Create better model info repository, expand suport to more models
 - [ ] Create separate driver methods for loading, unloading, and generating
 - [ ] Create pipelines system, use it to implement slash commands
-- [ ] Figure out easy Ollama-compatible CLIs
 - [ ] Write better test suite
-- [ ] Fix warning `Field "model_info" in ShowModelInformationResponse has conflict with protected namespace "model_".`
 - [ ] Restore strict mypy import checking
 - [ ] Create performance benchmark to test against ollama
 
