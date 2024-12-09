@@ -6,24 +6,31 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 
 ## Now
 
-- [ ] Dont download models from the chat endpoint, require use of pull
-- [ ] Add custom templates and stop tokens per model
-- [ ] Figure out why " #+#" is a Llama stop token
-- [ ] Add more helpful log messages
-- [ ] Figure out why the first words of each message seem to be getting truncated.
-- [ ] Move endpoints into separate files
-- [ ] Abstract out common code shared between generate and chat endpoints
+- [ ] Nest all packages under pal. namespace
+- [ ] Add a system for setting templates and stop tokens per model
+- [ ] Add more helpful console log messages
+- [ ] Figure out why the first words of each message seem to be getting truncated. https://github.com/lmstudio-ai/mlx-engine/issues/42
+- [ ] Move each endpoint into a separate file
+- [ ] Create pipelines system, use it to implement slash commands
+- [ ] Abstract common code shared between generate and chat endpoints
+- [ ] Try OpenWebUI integration
 
 ## Later
 
-- [ ] Add support for tools
-- [ ] Re-enable `generate` endpoint
-- [ ] Add support for `template` / `raw` options
-- [ ] Add support for `images` option and multimodal models
+- [ ] Figure out why " #+#" is a Llama stop token
+- [ ] Add support for `tools` on chat endpoint
+- [ ] Add support for `template` / `raw` options on generate endpoint
+- [ ] Add support for `images` option on chat and generate endpoints
 - [ ] Directly import `mlx_engine` from vendor directory without adding a symlink
 - [ ] Prune unnused pip packages
-- [ ] Hook up `eval_count` response field
 - [ ] Fix warning `Field "model_info" in ShowModelInformationResponse has conflict with protected namespace "model_".`
-- [ ] Add support for more model options keys
-- [ ] Add support for `suffix` option
-- [ ] Add progress messages to pull_model endpoint
+- [ ] Hook up `eval_count` response field on chat and generate endpoints
+- [ ] Add support for more options on chat and generate endpoints
+- [ ] Add support for `suffix` option on generate endpoint
+- [ ] Add progress messages to pull endpoint
+- [ ] Create `ps` endpoint
+- [ ] Create `embed` endpoint
+- [ ] Create `delete` endpoint
+- [ ] Create `show` endpoint
+- [ ] Improve response data from tags endpoint
+- [ ] Firmly turn off `create`, `push` and `copy` endpoints
