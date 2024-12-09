@@ -1,5 +1,5 @@
 import pytest
-from server.chat import (
+from pal.server.chat import (
     Request,
     Message,
     chat,

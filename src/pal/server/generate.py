@@ -3,10 +3,9 @@ from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
-from server.bootstrap import server
-
-import drivers.mlx_engine as driver
-from utils import ollama_format_to_json_schema
+from pal.server.bootstrap import server
+import pal.drivers.mlx_engine as driver
+from pal.utils import ollama_format_to_json_schema
 
 
 class Request(BaseModel):

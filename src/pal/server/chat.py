@@ -4,11 +4,10 @@ from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
-import drivers.mlx_engine as driver
-from utils import logger
-from server.bootstrap import server
-from utils import ollama_format_to_json_schema
+import pal.drivers.mlx_engine as driver
+from pal.server.bootstrap import server
 from transformers import AutoTokenizer
+from pal.utils import ollama_format_to_json_schema
 
 
 class ToolFunction(BaseModel):
@@ -61,8 +60,6 @@ class Request(BaseModel):
 
 @server.post("/api/chat")
 def chat(request: Request):
-
-    logger.info(f"chat request: {request}")
 
     if request.tools:
         raise HTTPException(status_code=501, detail="'tools' not implemented")

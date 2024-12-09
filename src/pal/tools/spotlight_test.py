@@ -1,4 +1,4 @@
-from tools.spotlight import spotlight
+from pal.tools.spotlight import spotlight
 
 
 def test_smoke():

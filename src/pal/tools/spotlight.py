@@ -1,7 +1,7 @@
 from typing import Optional
-from tool import tool, ToolArg
+from pal.tool import tool, ToolArg
 from typing import Annotated
-from utils import shell
+from pal.utils import shell
 
 
 @tool

@@ -1,7 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel
 import huggingface_hub
-from server.bootstrap import server
+from pal.server.bootstrap import server
 
 
 class TagDetails(BaseModel):

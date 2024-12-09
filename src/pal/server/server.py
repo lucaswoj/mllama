@@ -2,11 +2,11 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from typing import Literal, Optional, List, Dict, Any
 import huggingface_hub
-from server.bootstrap import server
+from pal.server.bootstrap import server
 
-import server.chat as chat  # noqa
-import server.tags as tags  # noqa
-import server.generate as generate  # noqa
+import pal.server.chat as chat  # noqa
+import pal.server.tags as tags  # noqa
+import pal.server.generate as generate  # noqa
 
 
 @server.get("/")

@@ -1,8 +1,8 @@
-from setuptools import setup, find_packages
+from setuptools import find_namespace_packages, setup, find_packages
 
 setup(
     name="pal",
     version="0.1",
-    packages=find_packages(where="src"),
-    package_dir={"": "src"},
+    packages=find_packages(where="src") + find_packages(where="vendor/mlx-engine"),
+    package_dir={"": "src", "mlx_engine": "vendor/mlx-engine/mlx_engine"},
 )
