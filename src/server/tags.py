@@ -1,3 +1,9 @@
+from typing import List, Optional
+from pydantic import BaseModel
+import huggingface_hub
+from server.bootstrap import server
+
+
 class TagDetails(BaseModel):
     parent_model: str
     format: str

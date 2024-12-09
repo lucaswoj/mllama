@@ -6,14 +6,13 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 
 ## Now
 
-- [ ] Nest all packages under pal. namespace
 - [ ] Add a system for setting templates and stop tokens per model
 - [ ] Add more helpful console log messages
 - [ ] Figure out why the first words of each message seem to be getting truncated. https://github.com/lmstudio-ai/mlx-engine/issues/42
 - [ ] Move each endpoint into a separate file
 - [ ] Create pipelines system, use it to implement slash commands
-- [ ] Abstract common code shared between generate and chat endpoints
 - [ ] Try OpenWebUI integration
+- [ ] Nest all packages under pal. namespace
 
 ## Later
 

@@ -1,5 +1,4 @@
 from datetime import datetime
-import json
 from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -7,6 +6,7 @@ from typing import Annotated, Literal, Optional, List, Dict, Any
 import driver
 from server.bootstrap import server
 from utils import format_to_schema
+import jinja2
 
 
 class ToolFunction(BaseModel):
@@ -64,7 +64,10 @@ def chat(request: Request):
         raise HTTPException(status_code=501, detail="'tools' not implemented")
 
     json_schema = format_to_schema(request.format)
-    prompt = ""
+
+    with open("./chat_templates/chatml.jinja") as file:
+        template = jinja2.Template(file.read())
+    prompt = template.render(messages=request.messages)
 
     generator = driver.generate(
         request.model,
@@ -88,7 +91,7 @@ def chat(request: Request):
                         "message": Message(
                             role="assistant",
                             content=event.response,
-                        ).model_dump_json(),
+                        ).model_dump(),
                     }
                 else:
                     raise ValueError("Unknown event type")
@@ -102,7 +105,7 @@ def chat(request: Request):
                     "message": Message(
                         role="assistant",
                         content=event.full_response,
-                    ).model_dump_json(),
+                    ).model_dump(),
                 }
 
 
