@@ -1,12 +1,13 @@
 from datetime import datetime
+import json
 from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
 import driver
 from server.bootstrap import server
-from utils import format_to_schema
-import jinja2
+from utils import get_json_schema, logger
+from transformers import AutoTokenizer
 
 
 class ToolFunction(BaseModel):
@@ -60,21 +61,40 @@ class Request(BaseModel):
 @server.post("/api/chat")
 def chat(request: Request):
 
+    logger.info(f"chat request: {request}")
+
     if request.tools:
         raise HTTPException(status_code=501, detail="'tools' not implemented")
 
-    json_schema = format_to_schema(request.format)
+    json_schema = get_json_schema(request.format)
 
-    with open("./chat_templates/chatml.jinja") as file:
-        template = jinja2.Template(file.read())
-    prompt = template.render(messages=request.messages)
+    tokenizer = AutoTokenizer.from_pretrained(request.model)
+    stop_strings: list[str] = [
+        tokenizer.eos_token,
+        *tokenizer.additional_special_tokens,
+    ]
+
+    if tokenizer.chat_template is not None:
+        pass
+    elif request.model.startswith("mlx-community/llama3.3"):
+        stop_strings = ["<|start_header_id|>", "<|end_header_id|>", "<|eot_id|>"]
+        tokenizer.chat_template = open("./chat_templates/llama3.3.jinja").read()
+    else:
+        tokenizer.chat_template = open("./chat_templates/chatml.jinja").read()
+
+    prompt = tokenizer.apply_chat_template(
+        conversation=request.messages, tokenize=False, add_generation_prompt=True
+    )
+
+    # logger.info(f"chat formatted prompt: {prompt}")
 
     generator = driver.generate(
-        request.model,
-        prompt,
-        request.options,
-        json_schema,
-        request.keep_alive,
+        model=request.model,
+        prompt=prompt,
+        options=request.options,
+        json_schema=json_schema,
+        keep_alive=request.keep_alive,
+        stop_strings=stop_strings,
     )
 
     if request.stream:
@@ -82,17 +102,19 @@ def chat(request: Request):
         def streaming_response():
             for event in generator:
                 if isinstance(event, driver.EndEvent):
-                    yield format_end_event(event)
-                elif isinstance(event, generator.ChunkResponse):
-                    yield {
-                        "model": request.model,
-                        "created_at": datetime.now().isoformat(),
-                        "done": False,
-                        "message": Message(
-                            role="assistant",
-                            content=event.response,
-                        ).model_dump(),
-                    }
+                    yield json.dumps(format_end_event(event))
+                elif isinstance(event, driver.ChunkEvent):
+                    yield json.dumps(
+                        {
+                            "model": request.model,
+                            "created_at": datetime.now().isoformat(),
+                            "done": False,
+                            "message": Message(
+                                role="assistant",
+                                content=event.response,
+                            ).model_dump(),
+                        }
+                    )
                 else:
                     raise ValueError("Unknown event type")
 

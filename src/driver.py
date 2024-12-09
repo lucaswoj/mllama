@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import threading
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from fastapi import HTTPException
 from pydantic import BaseModel
 from time import time_ns
@@ -11,6 +11,7 @@ import mlx_engine.vision.vision_model_kit
 import mlx_engine.model_kit
 import mlx_engine.vision.vision_model_kit
 import huggingface_hub
+from utils import logger
 
 
 from datetime import datetime
@@ -40,8 +41,6 @@ def load_model(name: str, keep_alive: str):
         path = huggingface_hub.snapshot_download(name, local_files_only=True)
         if path is None:
             raise HTTPException(status_code=404, detail=f"Model {name} not found")
-
-        print(f"Loading model {name} from {path}")
 
         model = mlx_engine.load_model(path, max_kv_size=4096, trust_remote_code=False)
         model_cache[name] = (model, datetime.now() + delta)
@@ -104,6 +103,7 @@ def generate(
     options: Dict[str, Any],
     json_schema: Optional[str],
     keep_alive: str,
+    stop_strings: Optional[List[str]],
 ):
     if keep_alive == 0:
         unload_model(model)
@@ -136,21 +136,23 @@ def generate(
         temp=0.7,
         top_p=None,
         min_tokens_to_keep=None,
+        stop_strings=stop_strings,
     )
 
     done_reason = None
     full_response = ""
     for response_chunk in generator:
-        yield ChunkEvent(
+        chunk_event = ChunkEvent(
             response=response_chunk.text,
         )
+        yield chunk_event
         full_response += response_chunk.text
         if response_chunk.stop_condition:
             done_reason = response_chunk.stop_condition.stop_reason
             break
 
     end_time = time_ns()
-    yield EndEvent(
+    end_event = EndEvent(
         full_response=full_response,
         total_duration=end_time - start_time,
         load_duration=load_time - start_time,
@@ -160,3 +162,5 @@ def generate(
         eval_duration=end_time - eval_time,
         done_reason=done_reason,
     )
+    logger.debug(end_event)
+    yield end_event

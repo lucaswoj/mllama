@@ -6,7 +6,7 @@ from typing import Annotated, Literal, Optional, List, Dict, Any
 from server.bootstrap import server
 
 import driver
-from utils import format_to_schema
+from utils import get_json_schema
 
 
 class Request(BaseModel):
@@ -110,7 +110,7 @@ def generate(request: Request):
     if request.context:
         raise HTTPException(status_code=501, detail="'context' not implemented")
 
-    json_schema = format_to_schema(request.format)
+    json_schema = get_json_schema(request.format)
 
     generator = driver.generate(
         request.model,
@@ -118,6 +118,7 @@ def generate(request: Request):
         request.options,
         json_schema,
         request.keep_alive,
+        stop_strings=None,
     )
 
     if request.stream:

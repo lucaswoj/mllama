@@ -4,6 +4,10 @@ from typing import Literal, Optional, List, Dict, Any
 import huggingface_hub
 from server.bootstrap import server
 
+import server.chat as chat  # noqa
+import server.tags as tags  # noqa
+import server.generate as generate  # noqa
+
 
 @server.get("/")
 @server.head("/")

@@ -28,8 +28,6 @@ class TagsResponse(BaseModel):
 
 @server.get("/api/tags")
 def tags():
-    print(huggingface_hub.scan_cache_dir().repos)
-
     return TagsResponse(
         models=[
             TagInfo(
