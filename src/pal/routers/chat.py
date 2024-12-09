@@ -1,12 +1,11 @@
 from datetime import datetime
 import json
-from fastapi import HTTPException
+from fastapi import APIRouter, HTTPException
 import fastapi
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
 import pal
-from pal.server.bootstrap import server
 from transformers import AutoTokenizer
 from pal.utils import ollama_format_to_json_schema
 import pal.generate
@@ -60,7 +59,10 @@ class Request(BaseModel):
     tools: List[Tool] = []
 
 
-@server.post("/api/chat")
+router = APIRouter()
+
+
+@router.post("/api/chat")
 async def chat(request: Request, fastapi_request: fastapi.Request):
 
     if request.tools:

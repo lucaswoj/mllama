@@ -1,9 +1,9 @@
 import json
 from fastapi.testclient import TestClient
-from pal.server.server import server
+from pal.main import app
 import fastapi
 import pytest
-from pal.server.generate import (
+from pal.routers.generate import (
     Request,
     generate,
 )
@@ -14,7 +14,7 @@ MAX_TOKENS = 12
 FASTAPI_REQUEST = fastapi.Request(
     {"type": "http", "http_version": "1.1", "method": "POST", "scheme": "http"}
 )
-CLIENT = TestClient(server)
+CLIENT = TestClient(app)
 
 
 def test_generate_basic():

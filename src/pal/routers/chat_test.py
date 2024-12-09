@@ -1,7 +1,7 @@
 import fastapi
-from pal.server.server import server
+from pal.main import app
 import pytest
-from pal.server.chat import (
+from pal.routers.chat import (
     Request,
     Message,
     chat,
@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 MODEL = "Qwen/Qwen2-0.5B"
 MAX_TOKENS = 12
-CLIENT = TestClient(server)
+CLIENT = TestClient(app)
 
 
 @pytest.mark.asyncio

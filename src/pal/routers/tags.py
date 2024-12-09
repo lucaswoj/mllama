@@ -1,7 +1,9 @@
 from typing import List, Optional
+from fastapi import APIRouter
 from pydantic import BaseModel
 import huggingface_hub
-from pal.server.bootstrap import server
+
+router = APIRouter()
 
 
 class TagDetails(BaseModel):
@@ -26,7 +28,7 @@ class TagsResponse(BaseModel):
     models: List[TagInfo]
 
 
-@server.get("/api/tags")
+@router.get("/api/tags")
 def tags():
     return TagsResponse(
         models=[

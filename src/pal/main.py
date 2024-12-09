@@ -1,16 +1,20 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
 from typing import Literal, Optional, List, Dict, Any
 import huggingface_hub
-from pal.server.bootstrap import server
+from pal.routers import chat, generate, tags
 
-import pal.server.chat as chat  # noqa
-import pal.server.tags as tags  # noqa
-import pal.server.generate as generate  # noqa
+app = FastAPI()
+
+app.include_router(chat.router)
+app.include_router(generate.router)
+app.include_router(tags.router)
 
 
-@server.get("/")
-@server.head("/")
+@app.get("/")
+@app.head("/")
 def root():
     return "Pal is running"
 
@@ -46,7 +50,7 @@ class CreateModelResponse(BaseModel):
     status: str
 
 
-@server.post("/api/create", response_model=CreateModelResponse)
+@app.post("/api/create", response_model=CreateModelResponse)
 def create_model(request: CreateModelRequest):
     raise HTTPException(status_code=501, detail="Not implemented")
 
@@ -72,7 +76,7 @@ class ShowModelInformationResponse(BaseModel):
 BaseModel.model_config["protected_namespaces"] = prev_protected_namespaces
 
 
-@server.post("/api/show", response_model=ShowModelInformationResponse)
+@app.post("/api/show", response_model=ShowModelInformationResponse)
 def show_model_information(request: ShowModelInformationRequest):
     raise HTTPException(status_code=501, detail="Not implemented")
 
@@ -86,7 +90,7 @@ class CopyModelResponse(BaseModel):
     status: str
 
 
-@server.post("/api/copy", response_model=CopyModelResponse)
+@app.post("/api/copy", response_model=CopyModelResponse)
 def copy_model(request: CopyModelRequest):
     raise HTTPException(status_code=501, detail="Not implemented")
 
@@ -100,7 +104,7 @@ class DeleteModelResponse(BaseModel):
     status: str
 
 
-@server.delete("/api/delete", response_model=DeleteModelResponse)
+@app.delete("/api/delete", response_model=DeleteModelResponse)
 def delete_model(request: DeleteModelRequest):
     raise HTTPException(status_code=501, detail="Not implemented")
 
@@ -111,7 +115,7 @@ class PullRequest(BaseModel):
     stream: Optional[bool] = True
 
 
-@server.post("/api/pull")
+@app.post("/api/pull")
 def pull(request: PullRequest):
     huggingface_hub.snapshot_download(request.model)
     return {"status": "success"}
@@ -128,7 +132,7 @@ class PushModelResponse(BaseModel):
     status: str
 
 
-@server.post("/api/push", response_model=PushModelResponse)
+@app.post("/api/push", response_model=PushModelResponse)
 def push_model(request: PushModelRequest):
     raise HTTPException(status_code=501, detail="Not implemented")
 
@@ -155,7 +159,7 @@ class GenerateEmbeddingsResponse(BaseModel):
     prompt_eval_count: Optional[int]
 
 
-@server.post("/api/embed", response_model=GenerateEmbeddingsResponse)
+@app.post("/api/embed", response_model=GenerateEmbeddingsResponse)
 def generate_embeddings(request: GenerateEmbeddingsRequest):
     raise HTTPException(status_code=501, detail="Not implemented")
 
@@ -164,6 +168,6 @@ class ListRunningModelsResponse(BaseModel):
     models: List[Dict[str, Any]]
 
 
-@server.get("/api/ps", response_model=ListRunningModelsResponse)
+@app.get("/api/ps", response_model=ListRunningModelsResponse)
 def list_running_models():
     raise HTTPException(status_code=501, detail="Not implemented")

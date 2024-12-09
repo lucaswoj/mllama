@@ -1,11 +1,10 @@
 from datetime import datetime
-from fastapi import HTTPException
+from fastapi import APIRouter, HTTPException
 import fastapi
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
 import pal
-from pal.server.bootstrap import server
 from pal.utils import ollama_format_to_json_schema
 import pal.generate
 
@@ -91,7 +90,10 @@ class ChunkResponse(BaseModel):
     done_reason: Optional[str] = None
 
 
-@server.post("/api/generate")
+router = APIRouter()
+
+
+@router.post("/api/generate")
 async def generate(request: Request, fastapi_request: fastapi.Request):
     if request.system:
         raise HTTPException(status_code=501, detail="'system' not implemented")
