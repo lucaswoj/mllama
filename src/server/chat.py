@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+from time import sleep
 from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -69,10 +70,7 @@ def chat(request: Request):
     json_schema = get_json_schema(request.format)
 
     tokenizer = AutoTokenizer.from_pretrained(request.model)
-    stop_strings: list[str] = [
-        tokenizer.eos_token,
-        *tokenizer.additional_special_tokens,
-    ]
+    stop_strings: list[str] = [tokenizer.eos_token, "<|im_end|>"]
 
     if tokenizer.chat_template is not None:
         pass
@@ -83,7 +81,7 @@ def chat(request: Request):
         tokenizer.chat_template = open("./chat_templates/chatml.jinja").read()
 
     prompt = tokenizer.apply_chat_template(
-        conversation=request.messages, tokenize=False, add_generation_prompt=False
+        conversation=request.messages, tokenize=False, add_generation_prompt=True
     )
 
     # logger.info(f"chat formatted prompt: {prompt}")
@@ -100,19 +98,68 @@ def chat(request: Request):
     if request.stream:
 
         def streaming_response():
+            yield json.dumps(
+                {
+                    "model": request.model,
+                    "created_at": datetime.now().isoformat(),
+                    "done": False,
+                    "message": "Lucas",
+                }
+            )
+            yield json.dumps(
+                {
+                    "model": request.model,
+                    "created_at": datetime.now().isoformat(),
+                    "done": False,
+                    "message": "Lucas",
+                }
+            )
+            yield json.dumps(
+                {
+                    "model": request.model,
+                    "created_at": datetime.now().isoformat(),
+                    "done": False,
+                    "message": "Lucas",
+                }
+            )
+            yield json.dumps(
+                {
+                    "model": request.model,
+                    "created_at": datetime.now().isoformat(),
+                    "done": False,
+                    "message": "Lucas",
+                }
+            )
+            yield json.dumps(
+                {
+                    "model": request.model,
+                    "created_at": datetime.now().isoformat(),
+                    "done": False,
+                    "message": "Lucas",
+                }
+            )
+            yield json.dumps(
+                {
+                    "model": request.model,
+                    "created_at": datetime.now().isoformat(),
+                    "done": False,
+                    "message": "Lucas",
+                }
+            )
             for event in generator:
                 if isinstance(event, driver.EndEvent):
                     yield json.dumps(format_end_event(event))
                 elif isinstance(event, driver.ChunkEvent):
+                    print(event.response)
                     yield json.dumps(
                         {
                             "model": request.model,
                             "created_at": datetime.now().isoformat(),
                             "done": False,
-                            "message": Message(
-                                role="assistant",
-                                content=event.response,
-                            ).model_dump(),
+                            "message": {
+                                "role": "assistant",
+                                "content": event.response,
+                            },
                         }
                     )
                 else:
@@ -124,10 +171,10 @@ def chat(request: Request):
             if isinstance(event, driver.EndEvent):
                 return {
                     **format_end_event(event),
-                    "message": Message(
-                        role="assistant",
-                        content=event.full_response,
-                    ).model_dump(),
+                    "message": {
+                        "role": "assistant",
+                        "content": event.full_response,
+                    },
                 }
 
 
