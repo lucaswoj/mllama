@@ -11,9 +11,12 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 - [ ] Write better test suite
 - [ ] Restore strict mypy import checking
 - [ ] Create performance benchmark to test against ollama
+- [ ] Get rid of package.json
 
 ## Later
 
+- [ ] Annotate all BaseModel fields with docs
+- [ ] Ensure all endpoints have typed response models
 - [ ] Add support for `tools` on chat endpoint
 - [ ] Add support for `images` on chat endpoint
 - [ ] Add support for `images` on generate endpoint
