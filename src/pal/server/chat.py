@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 from fastapi import HTTPException
+import fastapi
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
@@ -59,7 +60,7 @@ class Request(BaseModel):
 
 
 @server.post("/api/chat")
-def chat(request: Request):
+async def chat(request: Request, fastapi_request: fastapi.Request):
 
     if request.tools:
         raise HTTPException(status_code=501, detail="'tools' not implemented")
@@ -81,8 +82,6 @@ def chat(request: Request):
         conversation=request.messages, tokenize=False, add_generation_prompt=True
     )
 
-    # logger.info(f"chat formatted prompt: {prompt}")
-
     generator = driver.generate(
         model=request.model,
         prompt=prompt,
@@ -94,12 +93,16 @@ def chat(request: Request):
 
     if request.stream:
 
-        def streaming_response():
+        async def streaming_response():
             for event in generator:
-                if isinstance(event, driver.EndEvent):
+                if (
+                    fastapi_request is not None
+                    and await fastapi_request.is_disconnected()
+                ):
+                    return
+                elif isinstance(event, driver.EndEvent):
                     yield json.dumps(format_end_event(event))
                 elif isinstance(event, driver.ChunkEvent):
-                    print(event.response)
                     yield json.dumps(
                         {
                             "model": request.model,
@@ -123,7 +126,9 @@ def chat(request: Request):
         )
     else:
         for event in generator:
-            if isinstance(event, driver.EndEvent):
+            if fastapi_request is not None and await fastapi_request.is_disconnected():
+                return HTTPException(status_code=499, detail="client disconnected")
+            elif isinstance(event, driver.EndEvent):
                 return {
                     **format_end_event(event),
                     "message": {

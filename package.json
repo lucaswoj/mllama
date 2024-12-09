@@ -13,7 +13,7 @@
     "fix:prettier": "prettier --log-level=error --write .",
     "fix:autoflake": "venv/bin/autoflake --quiet --in-place --recursive --expand-star-imports src",
     "fix": "npm run fix:prettier && npm run fix:autoflake && npm run fix:black && npm run fix:pip",
-    "start": "venv/bin/uvicorn src.pal.server.server:server --reload",
+    "start": "venv/bin/uvicorn src.pal.server.server:server --reload --workers 4",
     "test": "npm run test:mypy && npm run test:pytest && npm run test:black && npm run test:autoflake && npm run test:prettier && npm run test:pip",
     "test:black": "venv/bin/black --check .",
     "test:mypy": "venv/bin/mypy src",

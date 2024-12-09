@@ -1,5 +1,6 @@
 from datetime import datetime
 from fastapi import HTTPException
+import fastapi
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
@@ -90,7 +91,7 @@ class ChunkResponse(BaseModel):
 
 
 @server.post("/api/generate")
-def generate(request: Request):
+async def generate(request: Request, fastapi_request: fastapi.Request):
     if request.system:
         raise HTTPException(status_code=501, detail="'system' not implemented")
 
@@ -122,9 +123,11 @@ def generate(request: Request):
 
     if request.stream:
 
-        def streaming_response():
+        async def streaming_response():
             for event in generator:
-                if isinstance(event, driver.EndEvent):
+                if await fastapi_request.is_disconnected():
+                    return
+                elif isinstance(event, driver.EndEvent):
                     yield format_end_event(event, event.full_response)
                 elif isinstance(event, driver.ChunkEvent):
                     yield {
@@ -160,8 +163,9 @@ def generate(request: Request):
         )
     else:
         for event in generator:
-            print(event)
-            if isinstance(event, driver.EndEvent):
+            if await fastapi_request.is_disconnected():
+                return HTTPException(status_code=499, detail="client disconnected")
+            elif isinstance(event, driver.EndEvent):
                 return format_end_event(event, event.full_response)
 
 
