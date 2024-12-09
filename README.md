@@ -5,7 +5,6 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 
 ## Now
 
-- [ ] Create better model info repository, expand suport to more models
 - [ ] Create separate driver methods for loading, unloading, and generating
 - [ ] Create pipelines system, use it to implement slash commands
 - [ ] Write better test suite
