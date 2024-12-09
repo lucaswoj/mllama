@@ -141,26 +141,25 @@ def generate(
 
     done_reason = None
     full_response = ""
+    eval_count = 0
     for response_chunk in generator:
-        chunk_event = ChunkEvent(
+        yield ChunkEvent(
             response=response_chunk.text,
         )
-        yield chunk_event
+        eval_count += 1
         full_response += response_chunk.text
         if response_chunk.stop_condition:
             done_reason = response_chunk.stop_condition.stop_reason
             break
 
     end_time = time_ns()
-    end_event = EndEvent(
+    yield EndEvent(
         full_response=full_response,
         total_duration=end_time - start_time,
         load_duration=load_time - start_time,
         prompt_eval_count=len(tokens),
         prompt_eval_duration=prompt_eval_time - load_time,
-        eval_count=0,
+        eval_count=eval_count,
         eval_duration=end_time - eval_time,
         done_reason=done_reason,
     )
-    logger.debug(end_event)
-    yield end_event

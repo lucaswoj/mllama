@@ -1,6 +1,5 @@
 from datetime import datetime
 import json
-from time import sleep
 from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -98,54 +97,6 @@ def chat(request: Request):
     if request.stream:
 
         def streaming_response():
-            yield json.dumps(
-                {
-                    "model": request.model,
-                    "created_at": datetime.now().isoformat(),
-                    "done": False,
-                    "message": "Lucas",
-                }
-            )
-            yield json.dumps(
-                {
-                    "model": request.model,
-                    "created_at": datetime.now().isoformat(),
-                    "done": False,
-                    "message": "Lucas",
-                }
-            )
-            yield json.dumps(
-                {
-                    "model": request.model,
-                    "created_at": datetime.now().isoformat(),
-                    "done": False,
-                    "message": "Lucas",
-                }
-            )
-            yield json.dumps(
-                {
-                    "model": request.model,
-                    "created_at": datetime.now().isoformat(),
-                    "done": False,
-                    "message": "Lucas",
-                }
-            )
-            yield json.dumps(
-                {
-                    "model": request.model,
-                    "created_at": datetime.now().isoformat(),
-                    "done": False,
-                    "message": "Lucas",
-                }
-            )
-            yield json.dumps(
-                {
-                    "model": request.model,
-                    "created_at": datetime.now().isoformat(),
-                    "done": False,
-                    "message": "Lucas",
-                }
-            )
             for event in generator:
                 if isinstance(event, driver.EndEvent):
                     yield json.dumps(format_end_event(event))
@@ -155,17 +106,23 @@ def chat(request: Request):
                         {
                             "model": request.model,
                             "created_at": datetime.now().isoformat(),
-                            "done": False,
                             "message": {
                                 "role": "assistant",
                                 "content": event.response,
                             },
+                            "done": False,
                         }
                     )
                 else:
                     raise ValueError("Unknown event type")
 
-        return StreamingResponse(streaming_response())
+        return StreamingResponse(
+            streaming_response(),
+            headers={
+                "Transfer-Encoding": "chunked",
+                "Content-Type": "application/x-ndjson",
+            },
+        )
     else:
         for event in generator:
             if isinstance(event, driver.EndEvent):

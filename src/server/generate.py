@@ -152,7 +152,13 @@ def generate(request: Request):
                 else:
                     raise ValueError("Unknown event type")
 
-        return StreamingResponse(streaming_response())
+        return StreamingResponse(
+            streaming_response(),
+            headers={
+                "Transfer-Encoding": "chunked",
+                "Content-Type": "application/x-ndjson",
+            },
+        )
     else:
         for event in generator:
             print(event)
