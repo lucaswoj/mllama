@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
-import driver
+import drivers.mlx_engine as driver
 from utils import logger
 from server.bootstrap import server
 from utils import ollama_format_to_json_schema

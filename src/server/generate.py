@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
 from server.bootstrap import server
 
-import driver
+import drivers.mlx_engine as driver
 from utils import ollama_format_to_json_schema
 
 

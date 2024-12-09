@@ -9,6 +9,7 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 - [ ] Create better model info repository
 - [ ] Create separate driver methods for loading, unloading, and generating
 - [ ] Create pipelines system, use it to implement slash commands
+- [ ] Figure out easy Ollama-compatible CLIs
 
 ## Later
 
