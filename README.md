@@ -30,3 +30,5 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 - [ ] Create `show` endpoint
 - [ ] Improve response data from tags endpoint
 - [ ] Firmly turn off `create`, `push` and `copy` endpoints
+- [ ] Add llm-structured-output driver
+- [ ] Restore strict mypy import checking
