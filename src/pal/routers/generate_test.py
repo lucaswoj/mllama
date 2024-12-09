@@ -2,10 +2,8 @@ import json
 from fastapi.testclient import TestClient
 from pal.main import app
 import fastapi
-import pytest
 from pal.routers.generate import (
     Request,
-    generate,
 )
 
 

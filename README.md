@@ -5,13 +5,11 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 
 ## Now
 
-- [ ] Create separate driver methods for loading, unloading, and generating
-- [ ] Create pipelines system, use it to implement slash commands
-- [ ] Write better test suite
-- [ ] Restore strict mypy import checking
-- [ ] Create performance benchmark to test against ollama
 - [ ] Get rid of package.json
-- [ ] Figure out why autoflake doens't get everything
+- [ ] Create performance benchmark to test against ollama
+- [ ] Restore strict mypy import checking
+- [ ] Write better test suite
+- [ ] Create pipelines system, use it to implement slash commands
 
 ## Later
 

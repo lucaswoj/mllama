@@ -59,7 +59,7 @@ class Model:
         | mlx_engine.vision.vision_model_kit.VisionModelKit
     )
     expiration: datetime
-    stop_strings: List[str]
+    stop_strings: Optional[List[str]]
 
     def __init__(
         self,
@@ -86,6 +86,8 @@ class Model:
 
         if tokenizer.eos_token is not None:
             self.stop_strings = [tokenizer.eos_token]
+        elif name.startswith("mlx-community/llama3.3"):
+            self.stop_strings = None
         else:
             self.stop_strings = ["<|im_end|>"]
 

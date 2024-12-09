@@ -1,9 +1,7 @@
 from pal.main import app
-import pytest
 from pal.routers.chat import (
     Request,
     Message,
-    chat,
 )
 from fastapi.testclient import TestClient
 import json
