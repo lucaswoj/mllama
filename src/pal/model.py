@@ -53,6 +53,7 @@ class Model:
         if name in cache:
             del cache[name]
 
+    name: str
     model: (
         mlx_engine.model_kit.ModelKit
         | mlx_engine.vision.vision_model_kit.VisionModelKit
@@ -165,9 +166,9 @@ def clean_cache():
     """Periodically checks and removes expired models from the cache."""
     while True:
         now = datetime.now()
-        expired_models = [name for name, (_, exp) in cache.items() if exp < now]
-        for name in expired_models:
-            Model.unload(name)
+        for model in list(cache.values()):
+            if model.expiration < now:
+                Model.unload(model.name)
         time.sleep(10)  # Run the cleanup every 10 seconds
 
 

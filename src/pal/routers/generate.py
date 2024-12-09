@@ -150,9 +150,9 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
             for event in generator:
                 if await fastapi_request.is_disconnected():
                     return
-                elif isinstance(event, pal.generate.EndEvent):
+                elif isinstance(event, pal.model.EndEvent):
                     yield format_end_event(event, event.full_response)
-                elif isinstance(event, pal.generate.ChunkEvent):
+                elif isinstance(event, pal.model.ChunkEvent):
                     yield {
                         "model": request.model,
                         "created_at": datetime.now().isoformat(),

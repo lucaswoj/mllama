@@ -87,9 +87,9 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
                     and await fastapi_request.is_disconnected()
                 ):
                     return
-                elif isinstance(event, pal.generate.EndEvent):
+                elif isinstance(event, pal.model.EndEvent):
                     yield json.dumps(format_end_event(event))
-                elif isinstance(event, pal.generate.ChunkEvent):
+                elif isinstance(event, pal.model.ChunkEvent):
                     yield json.dumps(
                         {
                             "model": request.model,

@@ -17,7 +17,7 @@ FASTAPI_REQUEST = fastapi.Request(
 CLIENT = TestClient(app)
 
 
-def test_generate_basic():
+def test_simple():
     response = CLIENT.post(
         "/api/generate",
         json=Request(
@@ -31,7 +31,19 @@ def test_generate_basic():
     assert len(response["response"]) > 0
 
 
-def test_generate_format_schema():
+def test_stream():
+    CLIENT.post(
+        "/api/generate",
+        json=Request(
+            model=MODEL,
+            prompt="Why is the sky blue?",
+            options={"max_tokens": MAX_TOKENS},
+            stream=True,
+        ).model_dump(),
+    )
+
+
+def test_schema():
     response = CLIENT.post(
         "/api/generate",
         json=Request(
