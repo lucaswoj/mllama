@@ -1,15 +1,13 @@
 from datetime import datetime
 import json
+from time import time_ns
 from fastapi import APIRouter, HTTPException
 import fastapi
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
 import pal
-from pal.model_config import ModelConfig
-from transformers import AutoTokenizer
-from pal.utils import ollama_format_to_json_schema
-import pal.generate
+from pal.model import Model
 
 
 class ToolFunction(BaseModel):
@@ -69,15 +67,15 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
     if request.tools:
         raise HTTPException(status_code=501, detail="'tools' not implemented")
 
-    model_config = ModelConfig(request.model)
+    start_time = time_ns()
 
-    generator = pal.generate.generate(
-        model=request.model,
-        prompt=model_config.template(conversation=request.messages),
+    model = Model.load(request.model, request.keep_alive)
+
+    generator = model.generate(
+        start_time=start_time,
+        prompt=model.template(conversation=request.messages),
         options=request.options,
-        json_schema=ollama_format_to_json_schema(request.format),
-        keep_alive=request.keep_alive,
-        stop_strings=model_config.stop_strings,
+        format=request.format,
     )
 
     if request.stream:
@@ -117,7 +115,7 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
         for event in generator:
             if fastapi_request is not None and await fastapi_request.is_disconnected():
                 return HTTPException(status_code=499, detail="client disconnected")
-            elif isinstance(event, pal.generate.EndEvent):
+            elif isinstance(event, pal.model.EndEvent):
                 return {
                     **format_end_event(event),
                     "message": {

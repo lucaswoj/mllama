@@ -1,15 +1,5 @@
-import json
 import subprocess
 import logging
-
-
-def ollama_format_to_json_schema(format):
-    if format == "json":
-        return '{"type": "object", "additionalProperties": true}'
-    elif format is not None:
-        return json.dumps(format)
-    else:
-        return None
 
 
 def shell(cmd: str):

@@ -1,13 +1,13 @@
 from datetime import datetime
+from time import time_ns
 from fastapi import APIRouter, HTTPException
 import fastapi
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
 import pal
-from pal.model_config import ModelConfig
-from pal.utils import ollama_format_to_json_schema
-import pal.generate
+from pal.model import Model
+import pal.model
 
 
 class Request(BaseModel):
@@ -115,7 +115,7 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
         raise HTTPException(status_code=501, detail="'context' not implemented")
 
     if request.keep_alive == 0:
-        pal.generate.unload_model(request.model)
+        Model.unload(request.model)
         return {
             "model": request.model,
             "created_at": datetime.now().isoformat(),
@@ -125,7 +125,7 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
         }
 
     if request.prompt is None:
-        pal.generate.load_model(request.model, request.keep_alive)
+        Model.load(request.model, request.keep_alive)
         return {
             "model": request.model,
             "created_at": datetime.now().isoformat(),
@@ -133,15 +133,15 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
             "done": True,
         }
 
-    model_config = ModelConfig(request.model)
+    start_time = time_ns()
 
-    generator = pal.generate.generate(
-        model=request.model,
+    model = Model.load(request.model, request.keep_alive)
+
+    generator = model.generate(
+        start_time=start_time,
         prompt=request.prompt,
         options=request.options,
-        json_schema=ollama_format_to_json_schema(request.format),
-        keep_alive=request.keep_alive,
-        stop_strings=model_config.stop_strings,
+        format=request.format,
     )
 
     if request.stream:
@@ -173,7 +173,7 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
         for event in generator:
             if await fastapi_request.is_disconnected():
                 return HTTPException(status_code=499, detail="client disconnected")
-            elif isinstance(event, pal.generate.EndEvent):
+            elif isinstance(event, pal.model.EndEvent):
                 return format_end_event(event, event.full_response)
 
 

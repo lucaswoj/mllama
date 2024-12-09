@@ -1,4 +1,3 @@
-import fastapi
 from pal.main import app
 import pytest
 from pal.routers.chat import (
