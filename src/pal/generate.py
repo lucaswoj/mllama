@@ -119,10 +119,6 @@ def generate(
 
     tokens = mlx_engine.tokenize(model_obj, prompt)
 
-    prompt_eval_time = time_ns()
-
-    eval_time = time_ns()
-
     generator = mlx_engine.create_generator(
         model_obj,
         tokens,
@@ -138,10 +134,14 @@ def generate(
         stop_strings=stop_strings,
     )
 
+    prompt_eval_time = None
     done_reason = None
     full_response = ""
     eval_count = 0
+
     for response_chunk in generator:
+        if prompt_eval_time is None:
+            prompt_eval_time = time_ns()
         yield ChunkEvent(
             response=response_chunk.text,
         )
@@ -157,8 +157,8 @@ def generate(
         total_duration=end_time - start_time,
         load_duration=load_time - start_time,
         prompt_eval_count=len(tokens),
-        prompt_eval_duration=prompt_eval_time - load_time,
+        prompt_eval_duration=prompt_eval_time - load_time if prompt_eval_time else 0,
         eval_count=eval_count,
-        eval_duration=end_time - eval_time,
+        eval_duration=end_time - prompt_eval_time if prompt_eval_time else 0,
         done_reason=done_reason,
     )

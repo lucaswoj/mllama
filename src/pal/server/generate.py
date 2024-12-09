@@ -4,9 +4,10 @@ import fastapi
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
+import pal
 from pal.server.bootstrap import server
-import pal.drivers.mlx_engine as driver
 from pal.utils import ollama_format_to_json_schema
+import pal.generate
 
 
 class Request(BaseModel):
@@ -112,7 +113,7 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
 
     json_schema = ollama_format_to_json_schema(request.format)
 
-    generator = driver.generate(
+    generator = pal.generate.generate(
         request.model,
         request.prompt,
         request.options,
@@ -127,16 +128,16 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
             for event in generator:
                 if await fastapi_request.is_disconnected():
                     return
-                elif isinstance(event, driver.EndEvent):
+                elif isinstance(event, pal.generate.EndEvent):
                     yield format_end_event(event, event.full_response)
-                elif isinstance(event, driver.ChunkEvent):
+                elif isinstance(event, pal.generate.ChunkEvent):
                     yield {
                         "model": request.model,
                         "created_at": datetime.now().isoformat(),
                         "response": "",
                         "done": False,
                     }
-                elif isinstance(event, driver.UnloadEvent):
+                elif isinstance(event, pal.generate.UnloadEvent):
                     yield {
                         "model": request.model,
                         "created_at": datetime.now().isoformat(),
@@ -144,7 +145,7 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
                         "done_reason": "unload",
                         "done": True,
                     }
-                elif isinstance(event, driver.LoadEvent):
+                elif isinstance(event, pal.generate.LoadEvent):
                     yield {
                         "model": request.model,
                         "created_at": datetime.now().isoformat(),
@@ -165,7 +166,7 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
         for event in generator:
             if await fastapi_request.is_disconnected():
                 return HTTPException(status_code=499, detail="client disconnected")
-            elif isinstance(event, driver.EndEvent):
+            elif isinstance(event, pal.generate.EndEvent):
                 return format_end_event(event, event.full_response)
 
 

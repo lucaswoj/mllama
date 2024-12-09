@@ -5,10 +5,11 @@ import fastapi
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
-import pal.drivers.mlx_engine as driver
+import pal
 from pal.server.bootstrap import server
 from transformers import AutoTokenizer
 from pal.utils import ollama_format_to_json_schema
+import pal.generate
 
 
 class ToolFunction(BaseModel):
@@ -82,7 +83,7 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
         conversation=request.messages, tokenize=False, add_generation_prompt=True
     )
 
-    generator = driver.generate(
+    generator = pal.generate.generate(
         model=request.model,
         prompt=prompt,
         options=request.options,
@@ -100,9 +101,9 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
                     and await fastapi_request.is_disconnected()
                 ):
                     return
-                elif isinstance(event, driver.EndEvent):
+                elif isinstance(event, pal.generate.EndEvent):
                     yield json.dumps(format_end_event(event))
-                elif isinstance(event, driver.ChunkEvent):
+                elif isinstance(event, pal.generate.ChunkEvent):
                     yield json.dumps(
                         {
                             "model": request.model,
@@ -128,7 +129,7 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
         for event in generator:
             if fastapi_request is not None and await fastapi_request.is_disconnected():
                 return HTTPException(status_code=499, detail="client disconnected")
-            elif isinstance(event, driver.EndEvent):
+            elif isinstance(event, pal.generate.EndEvent):
                 return {
                     **format_end_event(event),
                     "message": {
