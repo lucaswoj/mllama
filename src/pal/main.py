@@ -1,7 +1,5 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 from typing import Literal, Optional, List, Dict, Any
 import huggingface_hub
 from pal.routers import chat, generate, tags

@@ -67,16 +67,21 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
     if request.tools:
         raise HTTPException(status_code=501, detail="'tools' not implemented")
 
-    start_time = time_ns()
-
-    model = Model.load(request.model, request.keep_alive)
-
-    generator = model.generate(
-        start_time=start_time,
-        prompt=model.template(conversation=request.messages),
-        options=request.options,
-        format=request.format,
+    last_message = (
+        request.messages[-1].content.strip() if request.messages[-1].content else ""
     )
+    if last_message.startswith("/"):
+        return ""
+
+    else:
+        start_time = time_ns()
+        model = Model.load(request.model, request.keep_alive)
+        generator = model.generate(
+            start_time=start_time,
+            prompt=model.template(conversation=request.messages),
+            options=request.options,
+            format=request.format,
+        )
 
     if request.stream:
 

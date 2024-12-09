@@ -5,15 +5,16 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 
 ## Now
 
-- [ ] Add more chat templates
-- [ ] Figure out better package management system
-- [ ] Create performance benchmark to test against ollama
-- [ ] Restore strict mypy import checking
-- [ ] Write better test suite
 - [ ] Create pipelines system, use it to implement slash commands
+- [ ] Add more chat templates for different models
+- [ ] Figure out better package management system
+- [ ] Write better test suite
 
 ## Later
 
+- [ ] Create performance benchmark to test against ollama
+- [ ] Improve multhreading performance
+- [ ] Restore strict mypy import checking
 - [ ] Annotate all BaseModel fields with docs
 - [ ] Ensure all endpoints have typed response models
 - [ ] Add support for `tools` on chat endpoint
