@@ -6,7 +6,6 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 
 ## Now
 
-- [ ] Add a system for setting templates and stop tokens per model
 - [ ] Add more helpful console log messages
 - [ ] Figure out why the first words of each message seem to be getting truncated. https://github.com/lmstudio-ai/mlx-engine/issues/42
 - [ ] Move each endpoint into a separate file

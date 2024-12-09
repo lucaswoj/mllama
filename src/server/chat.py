@@ -83,7 +83,7 @@ def chat(request: Request):
         tokenizer.chat_template = open("./chat_templates/chatml.jinja").read()
 
     prompt = tokenizer.apply_chat_template(
-        conversation=request.messages, tokenize=False, add_generation_prompt=True
+        conversation=request.messages, tokenize=False, add_generation_prompt=False
     )
 
     # logger.info(f"chat formatted prompt: {prompt}")
