@@ -29,9 +29,9 @@ model_cache: Dict[
 ] = {}
 
 
-def load_model(name: str, keep_alive: str):
+def load_model(name: str, keep_alive: str | int):
     """Loads a model into the cache or extends its expiration."""
-    if keep_alive.endswith("m"):
+    if isinstance(keep_alive, str) and keep_alive.endswith("m"):
         delta = timedelta(minutes=int(keep_alive[:-1]))
     else:
         raise ValueError(f"Invalid keep_alive value: {keep_alive}")
@@ -77,17 +77,9 @@ class ChunkEvent(BaseModel):
     response: str
 
 
-class UnloadEvent(BaseModel):
-    pass
-
-
-class LoadEvent(BaseModel):
-    pass
-
-
-class EndEvent(UnloadEvent):
-    done_reason: Optional[str]
+class EndEvent(BaseModel):
     full_response: str
+    done_reason: Optional[str]
     total_duration: int
     load_duration: int
     prompt_eval_count: int
@@ -101,19 +93,13 @@ def generate(
     prompt: Optional[str],
     options: Dict[str, Any],
     json_schema: Optional[str],
-    keep_alive: str,
+    keep_alive: str | int,
     stop_strings: Optional[List[str]],
 ):
-    if keep_alive == 0:
-        unload_model(model)
-        return UnloadEvent()
 
     start_time = time_ns()
 
     model_obj = load_model(model, keep_alive)
-
-    if prompt is None:
-        return LoadEvent()
 
     load_time = time_ns()
 

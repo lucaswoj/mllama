@@ -69,15 +69,13 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
     if request.tools:
         raise HTTPException(status_code=501, detail="'tools' not implemented")
 
-    json_schema = ollama_format_to_json_schema(request.format)
-
     model_config = ModelConfig(request.model)
 
     generator = pal.generate.generate(
         model=request.model,
         prompt=model_config.template(conversation=request.messages),
         options=request.options,
-        json_schema=json_schema,
+        json_schema=ollama_format_to_json_schema(request.format),
         keep_alive=request.keep_alive,
         stop_strings=model_config.stop_strings,
     )

@@ -5,6 +5,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
 import pal
+from pal.model_config import ModelConfig
 from pal.utils import ollama_format_to_json_schema
 import pal.generate
 
@@ -30,7 +31,7 @@ class Request(BaseModel):
         ),
     ] = True
     keep_alive: Annotated[
-        str,
+        str | int,
         Field(
             description="controls how long the model will stay loaded into memory following the request (default: 5m)"
         ),
@@ -113,15 +114,34 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
     if request.context:
         raise HTTPException(status_code=501, detail="'context' not implemented")
 
-    json_schema = ollama_format_to_json_schema(request.format)
+    if request.keep_alive == 0:
+        pal.generate.unload_model(request.model)
+        return {
+            "model": request.model,
+            "created_at": datetime.now().isoformat(),
+            "response": "",
+            "done_reason": "unload",
+            "done": True,
+        }
+
+    if request.prompt is None:
+        pal.generate.load_model(request.model, request.keep_alive)
+        return {
+            "model": request.model,
+            "created_at": datetime.now().isoformat(),
+            "response": "",
+            "done": True,
+        }
+
+    model_config = ModelConfig(request.model)
 
     generator = pal.generate.generate(
-        request.model,
-        request.prompt,
-        request.options,
-        json_schema,
-        request.keep_alive,
-        stop_strings=None,
+        model=request.model,
+        prompt=request.prompt,
+        options=request.options,
+        json_schema=ollama_format_to_json_schema(request.format),
+        keep_alive=request.keep_alive,
+        stop_strings=model_config.stop_strings,
     )
 
     if request.stream:
@@ -138,21 +158,6 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
                         "created_at": datetime.now().isoformat(),
                         "response": "",
                         "done": False,
-                    }
-                elif isinstance(event, pal.generate.UnloadEvent):
-                    yield {
-                        "model": request.model,
-                        "created_at": datetime.now().isoformat(),
-                        "response": "",
-                        "done_reason": "unload",
-                        "done": True,
-                    }
-                elif isinstance(event, pal.generate.LoadEvent):
-                    yield {
-                        "model": request.model,
-                        "created_at": datetime.now().isoformat(),
-                        "response": "",
-                        "done": True,
                     }
                 else:
                     raise ValueError("Unknown event type")
