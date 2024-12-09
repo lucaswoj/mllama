@@ -12,6 +12,7 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 - [ ] Restore strict mypy import checking
 - [ ] Create performance benchmark to test against ollama
 - [ ] Get rid of package.json
+- [ ] Figure out why autoflake doens't get everything
 
 ## Later
 

@@ -6,6 +6,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
 import pal
+from pal.model_config import ModelConfig
 from transformers import AutoTokenizer
 from pal.utils import ollama_format_to_json_schema
 import pal.generate
@@ -70,28 +71,15 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
 
     json_schema = ollama_format_to_json_schema(request.format)
 
-    tokenizer = AutoTokenizer.from_pretrained(request.model)
-    stop_strings: list[str] = [tokenizer.eos_token, "<|im_end|>"]
-
-    if tokenizer.chat_template is not None:
-        pass
-    elif request.model.startswith("mlx-community/llama3.3"):
-        stop_strings = ["<|start_header_id|>", "<|end_header_id|>", "<|eot_id|>"]
-        tokenizer.chat_template = open("./chat_templates/llama3.3.jinja").read()
-    else:
-        tokenizer.chat_template = open("./chat_templates/chatml.jinja").read()
-
-    prompt = tokenizer.apply_chat_template(
-        conversation=request.messages, tokenize=False, add_generation_prompt=True
-    )
+    model_config = ModelConfig(request.model)
 
     generator = pal.generate.generate(
         model=request.model,
-        prompt=prompt,
+        prompt=model_config.template(conversation=request.messages),
         options=request.options,
         json_schema=json_schema,
         keep_alive=request.keep_alive,
-        stop_strings=stop_strings,
+        stop_strings=model_config.stop_strings,
     )
 
     if request.stream:
