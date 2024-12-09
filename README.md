@@ -5,7 +5,8 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 
 ## Now
 
-- [ ] Get rid of package.json
+- [ ] Add more chat templates
+- [ ] Figure out better package management system
 - [ ] Create performance benchmark to test against ollama
 - [ ] Restore strict mypy import checking
 - [ ] Write better test suite
