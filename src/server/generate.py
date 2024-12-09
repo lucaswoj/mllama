@@ -6,7 +6,7 @@ from typing import Annotated, Literal, Optional, List, Dict, Any
 from server.bootstrap import server
 
 import driver
-from utils import get_json_schema
+from utils import ollama_format_to_json_schema
 
 
 class Request(BaseModel):
@@ -110,7 +110,7 @@ def generate(request: Request):
     if request.context:
         raise HTTPException(status_code=501, detail="'context' not implemented")
 
-    json_schema = get_json_schema(request.format)
+    json_schema = ollama_format_to_json_schema(request.format)
 
     generator = driver.generate(
         request.model,
@@ -139,8 +139,8 @@ def generate(request: Request):
                         "model": request.model,
                         "created_at": datetime.now().isoformat(),
                         "response": "",
-                        "done": True,
                         "done_reason": "unload",
+                        "done": True,
                     }
                 elif isinstance(event, driver.LoadEvent):
                     yield {

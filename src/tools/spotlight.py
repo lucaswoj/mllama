@@ -1,7 +1,7 @@
 from typing import Optional
 from tool import tool, ToolArg
 from typing import Annotated
-from run import run
+from utils import shell
 
 
 @tool
@@ -21,4 +21,4 @@ def spotlight(
         cmd += f" -onlyin {onlyin}"
     cmd += f" {query}"
 
-    yield from run(cmd)
+    yield from shell(cmd)

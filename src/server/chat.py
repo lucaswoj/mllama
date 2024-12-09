@@ -5,8 +5,9 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
 import driver
+from utils import logger
 from server.bootstrap import server
-from utils import get_json_schema, logger
+from utils import ollama_format_to_json_schema
 from transformers import AutoTokenizer
 
 
@@ -66,7 +67,7 @@ def chat(request: Request):
     if request.tools:
         raise HTTPException(status_code=501, detail="'tools' not implemented")
 
-    json_schema = get_json_schema(request.format)
+    json_schema = ollama_format_to_json_schema(request.format)
 
     tokenizer = AutoTokenizer.from_pretrained(request.model)
     stop_strings: list[str] = [tokenizer.eos_token, "<|im_end|>"]
