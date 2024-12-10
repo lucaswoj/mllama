@@ -144,6 +144,20 @@ async def generate(params: Params, request: fastapi.Request):
         format=params.format,
     )
 
+    def format_end_event(event):
+        return {
+            "model": params.model,
+            "created_at": datetime.now().isoformat(),
+            "done_reason": event.done_reason,
+            "done": True,
+            "total_duration": event.total_duration,
+            "load_duration": event.load_duration,
+            "prompt_eval_count": event.prompt_eval_count,
+            "prompt_eval_duration": event.prompt_eval_duration,
+            "eval_count": event.eval_count,
+            "eval_duration": event.eval_duration,
+        }
+
     if params.stream:
 
         async def streaming_response():
@@ -151,7 +165,7 @@ async def generate(params: Params, request: fastapi.Request):
                 if await request.is_disconnected():
                     return
                 elif isinstance(event, pal.model.EndEvent):
-                    yield json.dumps(format_end_event(event))
+                    yield json.dumps(format_end_event(event)) + "\n"
                 elif isinstance(event, pal.model.ChunkEvent):
                     yield json.dumps(
                         {
@@ -160,7 +174,7 @@ async def generate(params: Params, request: fastapi.Request):
                             "response": "",
                             "done": False,
                         }
-                    )
+                    ) + "\n"
                 else:
                     raise ValueError("Unknown event type")
 
@@ -180,16 +194,3 @@ async def generate(params: Params, request: fastapi.Request):
                 return {**format_end_event(event), "response": full_response}
             else:
                 full_response += event.response
-
-
-def format_end_event(event):
-    return {
-        "done_reason": event.done_reason,
-        "done": True,
-        "total_duration": event.total_duration,
-        "load_duration": event.load_duration,
-        "prompt_eval_count": event.prompt_eval_count,
-        "prompt_eval_duration": event.prompt_eval_duration,
-        "eval_count": event.eval_count,
-        "eval_duration": event.eval_duration,
-    }

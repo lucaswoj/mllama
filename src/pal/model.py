@@ -55,12 +55,12 @@ class Model:
         self.name = name
         self.expiration = expiration
 
-        logger.info(f"model - {name} - download")
+        logger.info(f"model - {name} - load")
+
         path = huggingface_hub.snapshot_download(name, local_files_only=True)
         if path is None:
             raise HTTPException(status_code=404, detail=f"Model {name} not found")
 
-        logger.info(f"model - {name} - load")
         self.model = mlx_engine.load_model(
             path, max_kv_size=4096, trust_remote_code=False
         )

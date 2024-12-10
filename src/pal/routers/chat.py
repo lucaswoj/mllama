@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+import os
 from time import time_ns
 from fastapi import APIRouter, HTTPException
 import fastapi
@@ -75,7 +76,7 @@ async def chat(params: Params, request: fastapi.Request):
 
     start_time = time_ns()
 
-    if last_message.startswith("/"):
+    if os.environ["PAL_TOOLS"] is not None and last_message.startswith("/"):
         generator = pal.tools.generate(last_message, request.is_disconnected)
     else:
         model = Model.load(params.model, params.keep_alive)
@@ -86,6 +87,24 @@ async def chat(params: Params, request: fastapi.Request):
             format=params.format,
         )
 
+    def format_end_event(event, response):
+        return {
+            "model": params.model,
+            "message": {
+                "role": "assistant",
+                "content": response,
+            },
+            "created_at": datetime.now().isoformat(),
+            "done_reason": event.done_reason,
+            "done": True,
+            "total_duration": event.total_duration,
+            "load_duration": event.load_duration,
+            "prompt_eval_count": event.prompt_eval_count,
+            "prompt_eval_duration": event.prompt_eval_duration,
+            "eval_count": event.eval_count,
+            "eval_duration": event.eval_duration,
+        }
+
     if params.stream:
 
         async def streaming_response():
@@ -93,7 +112,7 @@ async def chat(params: Params, request: fastapi.Request):
                 if await request.is_disconnected():
                     return
                 elif isinstance(event, pal.events.EndEvent):
-                    yield json.dumps(format_end_event(event))
+                    yield json.dumps(format_end_event(event, "")) + "\n"
                 elif isinstance(event, pal.events.ChunkEvent):
                     yield json.dumps(
                         {
@@ -105,7 +124,7 @@ async def chat(params: Params, request: fastapi.Request):
                             },
                             "done": False,
                         }
-                    )
+                    ) + "\n"
                 else:
                     raise ValueError("Unknown event type")
 
@@ -122,25 +141,6 @@ async def chat(params: Params, request: fastapi.Request):
             if request is not None and await request.is_disconnected():
                 raise HTTPException(status_code=499, detail="client disconnected")
             elif isinstance(event, pal.model.EndEvent):
-                return {
-                    **format_end_event(event),
-                    "message": {
-                        "role": "assistant",
-                        "content": full_response,
-                    },
-                }
+                return format_end_event(event, full_response)
             else:
                 full_response += event.response
-
-
-def format_end_event(event):
-    return {
-        "done_reason": event.done_reason,
-        "done": True,
-        "total_duration": event.total_duration,
-        "load_duration": event.load_duration,
-        "prompt_eval_count": event.prompt_eval_count,
-        "prompt_eval_duration": event.prompt_eval_duration,
-        "eval_count": event.eval_count,
-        "eval_duration": event.eval_duration,
-    }
