@@ -8,12 +8,18 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 - [ ] Create pipelines system, use it to implement slash commands
 - [ ] Add more chat templates for different models
 - [ ] Figure out better package management system
-- [ ] Write better test suite
 - [ ] Remove "full_response" property from EndEvent
-- [ ] Make tools stream their output
+- [ ] Add helpful log messages to console
+- [ ] Rename tools for better disambituation with LLM tools
+- [ ] Ensure tool processes are killed when the HTTP connection is aborted
+- [ ] Ensure llm generation is killed when the HTTP connection is aborted
+- [ ] Ensure errors from tools are propgated back to the chat
+- [ ] Ensure tool args are parsed properly with quotes
+- [ ] Write unit tests for tools
 
 ## Later
 
+- [ ] Write better test suite
 - [ ] Create performance benchmark to test against ollama
 - [ ] Improve multhreading performance
 - [ ] Restore strict mypy import checking

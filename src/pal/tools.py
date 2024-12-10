@@ -1,65 +1,50 @@
 import os
+import pal.model
+import shlex
+
+
 import subprocess
-from dotenv import load_dotenv
-import click
-import json
-from typing import Any, Dict, Callable, get_type_hints
-
-load_dotenv()
+from typing import Any
 
 
-@click.group()
-def tools():
-    pass
+async def generate(message: str, fastapi_request: Any):
+    process = subprocess.Popen(
+        [
+            "python",
+            os.path.join(os.path.dirname(__file__), "tools_cli.py"),
+            *shlex.split(message[1:]),
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
 
+    if process.stdout is None:
+        raise RuntimeError("Process has no stdout")
 
-dir = os.getenv("PAL_TOOLS")
+    full_response = ""
 
-if dir is None:
-    raise RuntimeError("PAL_TOOLS environment variable is not set")
-
-for file in os.listdir(dir):
-    if file.endswith(".json"):
-        name = file[: len(".json")]
-
-        with open(os.path.join(dir, file)) as f:
-            schema = json.load(f)
-
-        def command():
-            process = subprocess.Popen(
-                os.path.join(dir, name + ".tsx"),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
+    try:
+        for line in iter(process.stdout.readline, ""):
+            if await fastapi_request.is_disconnected():
+                print("aborting tool")
+                process.kill()
+                break
+            print("tool output", line)
+            yield pal.model.ChunkEvent(
+                response=line + "\n",
             )
-            if process.stdout is None:
-                raise RuntimeError("Process has no stdout")
-            try:
-                for line in iter(process.stdout.readline, ""):
-                    click.echo(line, nl=False)
-            finally:
-                process.stdout.close()
-                process.wait()
-
-        for property, property_schema in schema["parameters"]["properties"].items():
-            if property in schema["required"]:
-                command = click.argument(
-                    property,
-                    default=property_schema["default"],
-                    help=property_schema["description"],
-                )(command)
-            else:
-                command = click.option(
-                    f"--{property}",
-                    default=property_schema["default"],
-                    help=property_schema["description"],
-                )(command)
-
-        tools.command(
-            name=name,
-            help=schema["description"],
-        )(command)
-
-
-if __name__ == "__main__":
-    tools()
+            full_response += line + "\n"
+    finally:
+        process.stdout.close()
+        process.wait()
+        yield pal.model.EndEvent(
+            full_response=full_response,
+            done_reason=None,
+            total_duration=0,
+            load_duration=0,
+            prompt_eval_count=0,
+            prompt_eval_duration=0,
+            eval_count=0,
+            eval_duration=0,
+        )

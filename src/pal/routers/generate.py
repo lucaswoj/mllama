@@ -148,7 +148,7 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
     if request.stream:
 
         async def streaming_response():
-            for event in generator:
+            async for event in generator:
                 if await fastapi_request.is_disconnected():
                     return
                 elif isinstance(event, pal.model.EndEvent):
@@ -173,7 +173,7 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
             },
         )
     else:
-        for event in generator:
+        async for event in generator:
             if await fastapi_request.is_disconnected():
                 return HTTPException(status_code=499, detail="client disconnected")
             elif isinstance(event, pal.model.EndEvent):

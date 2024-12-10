@@ -84,7 +84,9 @@ class Model:
         else:
             tokenizer.chat_template = open("src/pal/chat_templates/chatml.jinja").read()
 
-        if tokenizer.eos_token is not None:
+        if name.startswith("mlx-community/llama3.3") or name.startswith("Qwen/"):
+            self.stop_strings = ["<|im_end|>"]
+        elif tokenizer.eos_token is not None:
             self.stop_strings = [tokenizer.eos_token]
         else:
             self.stop_strings = ["<|im_end|>"]
@@ -94,7 +96,7 @@ class Model:
             tokenize=False, add_generation_prompt=True, **kwargs
         )
 
-    def generate(
+    async def generate(
         self,
         start_time: int,
         prompt: Optional[str],

@@ -3,6 +3,9 @@ from pydantic import BaseModel
 from typing import Literal, Optional, List, Dict, Any
 import huggingface_hub
 from pal.routers import chat, generate, tags
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 

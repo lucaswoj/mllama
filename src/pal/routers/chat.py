@@ -8,11 +8,7 @@ from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
 import pal
 from pal.model import Model
-from click.testing import CliRunner
-
-from pal.tools import tools
-
-tools_runner = CliRunner()
+import pal.tools
 
 
 class ToolFunction(BaseModel):
@@ -79,20 +75,7 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
     start_time = time_ns()
 
     if last_message.startswith("/"):
-        result = tools_runner.invoke(tools, last_message[1:].split(" "))
-        generator = [
-            pal.model.ChunkEvent(response=result.output),
-            pal.model.EndEvent(
-                full_response=result.output,
-                done_reason=None,
-                total_duration=0,
-                load_duration=0,
-                prompt_eval_count=0,
-                prompt_eval_duration=0,
-                eval_count=0,
-                eval_duration=0,
-            ),
-        ]
+        generator = pal.tools.generate(last_message, fastapi_request)
     else:
         model = Model.load(request.model, request.keep_alive)
         generator = model.generate(
@@ -105,7 +88,7 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
     if request.stream:
 
         async def streaming_response():
-            for event in generator:
+            async for event in generator:
                 if (
                     fastapi_request is not None
                     and await fastapi_request.is_disconnected()
@@ -136,7 +119,7 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
             },
         )
     else:
-        for event in generator:
+        async for event in generator:
             if fastapi_request is not None and await fastapi_request.is_disconnected():
                 return HTTPException(status_code=499, detail="client disconnected")
             elif isinstance(event, pal.model.EndEvent):
