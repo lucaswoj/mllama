@@ -5,24 +5,31 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 
 ## Now
 
-- [ ] Create pipelines system, use it to implement slash commands
-- [ ] Add more chat templates for different models
-- [ ] Figure out better package management system
-- [ ] Remove "full_response" property from EndEvent
-- [ ] Add helpful log messages to console
-- [ ] Rename tools for better disambituation with LLM tools
-- [ ] Ensure tool processes are killed when the HTTP connection is aborted
-- [ ] Ensure llm generation is killed when the HTTP connection is aborted
-- [ ] Ensure errors from tools are propgated back to the chat
-- [ ] Ensure tool args are parsed properly with quotes
-- [ ] Write unit tests for tools
+- [ ] Switch to using `pip-tools`'s `requrements.in` file for dependency management or poetry
+- [ ] Print more log messages to console
+- [ ] Rename "tools" for better disambituation with LLM tools, maybe call them "scripts"?
+- [ ] Ensure errors from "scripts" are propgated back to the chat
+- [ ] Write unit tests for "scripts" system
+- [ ] Write better test suite
+- [ ] Ensure command processes are killed when the HTTP connection is aborted
+- [ ] Refactor for more consistency between model generator and tool generator implementations, make some fields on EndEvent optional or automatic
+- [ ] Create more useful tools
+- [ ] Fix "WARNING: "workers" flag is ignored when reloading is enabled."
+- [ ] Mess around with Enchanted "completions"
 
 ## Later
 
-- [ ] Write better test suite
-- [ ] Create performance benchmark to test against ollama
+- [ ] Add a system allowing scripts to be called as tools by the LLM
+- [ ] Remove "full_response" property from EndEvent
 - [ ] Improve multhreading performance
+- [ ] Ensure LLM generation is killed when the HTTP connection is aborted
+- [ ] Reserch reranking systems for use with RAG and internet search
+- [ ] Add more chat templates and model configurations
+- [ ] Allow piping "scripts" into eachother (like /morning_report | /podcast_script | /summary)
+- [ ] Try implementing "scripts" system without an intermediate process
+- [ ] Create performance benchmark to test against ollama
 - [ ] Restore strict mypy import checking
+- [ ] Create "hooks" system to automatically run scripts at different times, allowing for - context augmentation - memories - chat history modification
 - [ ] Annotate all BaseModel fields with docs
 - [ ] Ensure all endpoints have typed response models
 - [ ] Add support for `tools` on chat endpoint
@@ -41,4 +48,3 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 - [ ] Create `delete` endpoint
 - [ ] Create `show` endpoint
 - [ ] Improve response data from tags endpoint
-- [ ] Add llm-structured-output driver
