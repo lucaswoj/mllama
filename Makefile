@@ -1,5 +1,5 @@
 start:
-	venv/bin/uvicorn src.pal.main:app --reload
+	venv/bin/uvicorn src.pal.main:app --reload --log-level info
 
 fix: fix_autoflake fix_black
 

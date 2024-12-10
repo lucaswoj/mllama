@@ -13,6 +13,7 @@ import mlx_engine.vision.vision_model_kit
 import huggingface_hub
 from datetime import datetime
 from typing import Dict
+from pal.logger import logger
 
 
 class ChunkEvent(BaseModel):
@@ -69,10 +70,12 @@ class Model:
         self.name = name
         self.expiration = expiration
 
+        logger.info(f"model - {name} - download")
         path = huggingface_hub.snapshot_download(name, local_files_only=True)
         if path is None:
             raise HTTPException(status_code=404, detail=f"Model {name} not found")
 
+        logger.info(f"model - {name} - load")
         self.model = mlx_engine.load_model(
             path, max_kv_size=4096, trust_remote_code=False
         )
@@ -114,6 +117,7 @@ class Model:
         else:
             json_schema = None
 
+        logger.info(f"model - {self.name} - prompt eval")
         generator = mlx_engine.create_generator(
             self.model,
             tokens,
@@ -136,6 +140,7 @@ class Model:
 
         for response_chunk in generator:
             if prompt_eval_time is None:
+                logger.info(f"model - {self.name} - eval")
                 prompt_eval_time = time_ns()
             yield ChunkEvent(
                 response=response_chunk.text,
@@ -159,6 +164,7 @@ class Model:
             eval_duration=end_time - prompt_eval_time if prompt_eval_time else 0,
             done_reason=done_reason,
         )
+        logger.info(f"model - {self.name} - end")
 
 
 cache: Dict[str, Model] = {}
