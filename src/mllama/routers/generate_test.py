@@ -1,8 +1,8 @@
 import json
 from fastapi.testclient import TestClient
-from pal.main import app
+from mllama.main import app
 import fastapi
-from pal.routers.generate import (
+from mllama.routers.generate import (
     Params,
 )
 

@@ -1,5 +1,11 @@
 start:
-	venv/bin/uvicorn src.pal.main:app --reload --log-level info
+	venv/bin/uvicorn src.mllama.main:app --reload --log-level info
+
+install:
+	python3.11 -m venv venv
+	venv/bin/pip install -r requirements.txt
+	venv/bin/pip install -r vendor/mlx-engine/requirements.txt
+	venv/bin/pip install --quiet -e .
 
 fix: fix_autoflake fix_black
 

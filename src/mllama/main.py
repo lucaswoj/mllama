@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Literal, Optional, List, Dict, Any
 import huggingface_hub
-from pal.routers import chat, generate, tags
+from mllama.routers import chat, generate, tags
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,7 +17,7 @@ app.include_router(tags.router)
 @app.get("/")
 @app.head("/")
 def root():
-    return "Pal is running"
+    return "Mllama is running"
 
 
 class ToolFunction(BaseModel):

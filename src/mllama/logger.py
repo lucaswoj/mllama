@@ -1,7 +1,7 @@
 import logging
 import logging.config
 
-LOGGER_NAME = "pal"
+LOGGER_NAME = "mllama"
 
 log_config = {
     "version": 1,

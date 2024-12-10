@@ -6,9 +6,9 @@ import fastapi
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
-import pal
-from pal.model import Model
-import pal.model
+import mllama
+from mllama.model import Model
+import mllama.model
 
 
 class Params(BaseModel):
@@ -164,9 +164,9 @@ async def generate(params: Params, request: fastapi.Request):
             async for event in generator:
                 if await request.is_disconnected():
                     return
-                elif isinstance(event, pal.model.EndEvent):
+                elif isinstance(event, mllama.model.EndEvent):
                     yield json.dumps(format_end_event(event)) + "\n"
-                elif isinstance(event, pal.model.ChunkEvent):
+                elif isinstance(event, mllama.model.ChunkEvent):
                     yield json.dumps(
                         {
                             "model": params.model,
@@ -190,7 +190,7 @@ async def generate(params: Params, request: fastapi.Request):
         async for event in generator:
             if await request.is_disconnected():
                 raise HTTPException(status_code=499, detail="client disconnected")
-            elif isinstance(event, pal.model.EndEvent):
+            elif isinstance(event, mllama.model.EndEvent):
                 return {**format_end_event(event), "response": full_response}
             else:
                 full_response += event.response

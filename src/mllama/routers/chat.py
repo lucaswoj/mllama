@@ -1,16 +1,14 @@
 from datetime import datetime
 import json
-import os
 from time import time_ns
 from fastapi import APIRouter, HTTPException
 import fastapi
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
-import pal
-import pal.events
-from pal.model import Model
-import pal.tools
+import mllama
+import mllama.events
+from mllama.model import Model
 
 
 class ToolFunction(BaseModel):
@@ -66,26 +64,18 @@ router = APIRouter()
 
 @router.post("/api/chat")
 async def chat(params: Params, request: fastapi.Request):
-
     if params.tools:
         raise HTTPException(status_code=501, detail="'tools' not implemented")
 
-    last_message = (
-        params.messages[-1].content.strip() if params.messages[-1].content else ""
-    )
-
     start_time = time_ns()
 
-    if os.environ["PAL_TOOLS"] is not None and last_message.startswith("/"):
-        generator = pal.tools.generate(last_message, request.is_disconnected)
-    else:
-        model = Model.load(params.model, params.keep_alive)
-        generator = model.generate(
-            start_time=start_time,
-            prompt=model.template(conversation=params.messages),
-            options=params.options,
-            format=params.format,
-        )
+    model = Model.load(params.model, params.keep_alive)
+    generator = model.generate(
+        start_time=start_time,
+        prompt=model.template(conversation=params.messages),
+        options=params.options,
+        format=params.format,
+    )
 
     def format_end_event(event, response):
         return {
@@ -111,9 +101,9 @@ async def chat(params: Params, request: fastapi.Request):
             async for event in generator:
                 if await request.is_disconnected():
                     return
-                elif isinstance(event, pal.events.EndEvent):
+                elif isinstance(event, mllama.events.EndEvent):
                     yield json.dumps(format_end_event(event, "")) + "\n"
-                elif isinstance(event, pal.events.ChunkEvent):
+                elif isinstance(event, mllama.events.ChunkEvent):
                     yield json.dumps(
                         {
                             "model": params.model,
@@ -140,7 +130,7 @@ async def chat(params: Params, request: fastapi.Request):
         async for event in generator:
             if request is not None and await request.is_disconnected():
                 raise HTTPException(status_code=499, detail="client disconnected")
-            elif isinstance(event, pal.model.EndEvent):
+            elif isinstance(event, mllama.model.EndEvent):
                 return format_end_event(event, full_response)
             else:
                 full_response += event.response

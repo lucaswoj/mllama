@@ -12,8 +12,8 @@ import mlx_engine.vision.vision_model_kit
 import huggingface_hub
 from datetime import datetime
 from typing import Dict
-from pal.events import ChunkEvent, EndEvent
-from pal.logger import logger
+from mllama.events import ChunkEvent, EndEvent
+from mllama.logger import logger
 
 
 class Model:
@@ -70,7 +70,9 @@ class Model:
         if tokenizer.chat_template is not None:
             pass
         else:
-            tokenizer.chat_template = open("src/pal/chat_templates/chatml.jinja").read()
+            tokenizer.chat_template = open(
+                "src/mllama/chat_templates/chatml.jinja"
+            ).read()
 
         if name.startswith("mlx-community/llama3.3") or name.startswith("Qwen/"):
             self.stop_strings = ["<|im_end|>"]

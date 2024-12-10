@@ -67,7 +67,7 @@ orjson==3.10.12
 outlines==0.1.5
 outlines_core==0.1.17
 packaging==24.2
-# Editable Git install with no remote (pal==0.1)
+# Editable Git install with no remote (mllama==0.1)
 pandas==2.2.3
 pathspec==0.12.1
 pillow==11.0.0

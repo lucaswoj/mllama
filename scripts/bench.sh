@@ -1,8 +1,8 @@
-echo "Testing Pal"
+echo "Testing Mllama"
 
 urls=("http://localhost:8000/api/chat" "http://localhost:11434/api/chat")
 models=("mlx-community/llama-3.3-70B-Instruct-8bit" "llama3.3:70b-instruct-q8_0")
-names=("Pal" "Ollama")
+names=("Mllama" "Ollama")
 
 for i in "${!urls[@]}"; do
   echo "Testing ${names[$i]}"

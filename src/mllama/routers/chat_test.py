@@ -1,5 +1,5 @@
-from pal.main import app
-from pal.routers.chat import (
+from mllama.main import app
+from mllama.routers.chat import (
     Params,
     Message,
 )
