@@ -125,18 +125,17 @@ async def generate(params: Params, request: fastapi.Request):
             "done": True,
         }
 
+    start_time = time_ns()
+
+    model = Model.load(params.model, params.keep_alive)
+
     if params.prompt is None:
-        Model.load(params.model, params.keep_alive)
         return {
             "model": params.model,
             "created_at": datetime.now().isoformat(),
             "response": "",
             "done": True,
         }
-
-    start_time = time_ns()
-
-    model = Model.load(params.model, params.keep_alive)
 
     generator = model.generate(
         start_time=start_time,
