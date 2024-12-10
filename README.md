@@ -6,15 +6,13 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 ## Now
 
 - [ ] Switch to using `pip-tools`'s `requrements.in` file for dependency management or poetry
-- [ ] Print more log messages to console
+- [ ] Define manifold system?
 - [ ] Rename "tools" for better disambituation with LLM tools, maybe call them "scripts"?
 - [ ] Ensure errors from "scripts" are propgated back to the chat
-- [ ] Write unit tests for "scripts" system
 - [ ] Write better test suite
 - [ ] Ensure command processes are killed when the HTTP connection is aborted
 - [ ] Refactor for more consistency between model generator and tool generator implementations, make some fields on EndEvent optional or automatic
 - [ ] Create more useful tools
-- [ ] Fix "WARNING: "workers" flag is ignored when reloading is enabled."
 - [ ] Mess around with Enchanted "completions"
 
 ## Later

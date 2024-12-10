@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 from typing import Dict
 from dotenv import load_dotenv
 import click
@@ -39,11 +40,11 @@ for file in os.listdir(dir):
         def command(**kwargs):
             if name not in executable:
                 raise RuntimeError(
-                    f"Tool for '{name}' not found. Ensure there is a file at '{os.path.join(dir, name)}'* with the executable bit set."
+                    f"'{name}' tool executable not found. Ensure there is an executable (chmod +x) at '{os.path.join(dir, name)}'.*"
                 )
 
             result = subprocess.call([executable[name], json.dumps(kwargs)])
-            os.exit(result)
+            sys.exit(result)
 
         for property, property_schema in schema["parameters"]["properties"].items():
             if property in schema["parameters"].get("required", []):
@@ -72,6 +73,5 @@ def help():
     click.echo(tools.get_help(click.Context(tools)))
 
 
-# TODO take a better abort signal than fastapi_request.is_disconnected
 if __name__ == "__main__":
     tools()
