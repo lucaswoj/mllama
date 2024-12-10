@@ -8,6 +8,11 @@ from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
 import pal
 from pal.model import Model
+from click.testing import CliRunner
+
+from pal.tools import tools
+
+tools_runner = CliRunner()
 
 
 class ToolFunction(BaseModel):
@@ -70,11 +75,25 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
     last_message = (
         request.messages[-1].content.strip() if request.messages[-1].content else ""
     )
-    if last_message.startswith("/"):
-        return ""
 
+    start_time = time_ns()
+
+    if last_message.startswith("/"):
+        result = tools_runner.invoke(tools, last_message[1:].split(" "))
+        generator = [
+            pal.model.ChunkEvent(response=result.output),
+            pal.model.EndEvent(
+                full_response=result.output,
+                done_reason=None,
+                total_duration=0,
+                load_duration=0,
+                prompt_eval_count=0,
+                prompt_eval_duration=0,
+                eval_count=0,
+                eval_duration=0,
+            ),
+        ]
     else:
-        start_time = time_ns()
         model = Model.load(request.model, request.keep_alive)
         generator = model.generate(
             start_time=start_time,

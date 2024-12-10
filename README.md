@@ -9,6 +9,8 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 - [ ] Add more chat templates for different models
 - [ ] Figure out better package management system
 - [ ] Write better test suite
+- [ ] Remove "full_response" property from EndEvent
+- [ ] Make tools stream their output
 
 ## Later
 

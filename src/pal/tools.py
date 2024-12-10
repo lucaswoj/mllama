@@ -9,7 +9,7 @@ load_dotenv()
 
 
 @click.group()
-def app():
+def tools():
     pass
 
 
@@ -36,7 +36,7 @@ for file in os.listdir(dir):
                 raise RuntimeError("Process has no stdout")
             try:
                 for line in iter(process.stdout.readline, ""):
-                    print(line, end="")
+                    click.echo(line, nl=False)
             finally:
                 process.stdout.close()
                 process.wait()
@@ -55,11 +55,11 @@ for file in os.listdir(dir):
                     help=property_schema["description"],
                 )(command)
 
-        app.command(
+        tools.command(
             name=name,
             help=schema["description"],
         )(command)
 
 
 if __name__ == "__main__":
-    app()
+    tools()
