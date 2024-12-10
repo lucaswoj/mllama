@@ -1,4 +1,6 @@
 import os
+
+from fastapi import HTTPException
 from pal.logger import logger
 import pal.model
 import shlex
@@ -27,29 +29,17 @@ async def generate(message: str, fastapi_request: Any):
     if process.stdout is None:
         raise RuntimeError("Process has no stdout")
 
-    full_response = ""
-
     try:
         for line in iter(process.stdout.readline, ""):
             if await fastapi_request.is_disconnected():
                 logger.warning(f"tool - {args[2]} - killing process")
                 process.kill()
-                break
+                raise HTTPException(status_code=499, detail="client disconnected")
             yield pal.model.ChunkEvent(
                 response=line + "\n",
             )
-            full_response += line + "\n"
     finally:
         process.stdout.close()
         process.wait()
-        yield pal.model.EndEvent(
-            full_response=full_response,
-            done_reason=None,
-            total_duration=0,
-            load_duration=0,
-            prompt_eval_count=0,
-            prompt_eval_duration=0,
-            eval_count=0,
-            eval_duration=0,
-        )
+        yield pal.model.EndEvent()
         logger.info(f"tool - {name} - end")

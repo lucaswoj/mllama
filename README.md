@@ -6,19 +6,15 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 ## Now
 
 - [ ] Switch to using `pip-tools`'s `requrements.in` file for dependency management or poetry
-- [ ] Define manifold system?
-- [ ] Rename "tools" for better disambituation with LLM tools, maybe call them "scripts"?
-- [ ] Ensure errors from "scripts" are propgated back to the chat
+- [ ] Rename "tools" for better disambituation with LLM tools, maybe call them "scripts" or "commands"?
 - [ ] Write better test suite
 - [ ] Ensure command processes are killed when the HTTP connection is aborted
-- [ ] Refactor for more consistency between model generator and tool generator implementations, make some fields on EndEvent optional or automatic
 - [ ] Create more useful tools
 - [ ] Mess around with Enchanted "completions"
 
 ## Later
 
 - [ ] Add a system allowing scripts to be called as tools by the LLM
-- [ ] Remove "full_response" property from EndEvent
 - [ ] Improve multhreading performance
 - [ ] Ensure LLM generation is killed when the HTTP connection is aborted
 - [ ] Reserch reranking systems for use with RAG and internet search

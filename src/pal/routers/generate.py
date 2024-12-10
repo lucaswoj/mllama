@@ -152,7 +152,7 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
                 if await fastapi_request.is_disconnected():
                     return
                 elif isinstance(event, pal.model.EndEvent):
-                    yield json.dumps(format_end_event(event, event.full_response))
+                    yield json.dumps(format_end_event(event))
                 elif isinstance(event, pal.model.ChunkEvent):
                     yield json.dumps(
                         {
@@ -173,17 +173,19 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
             },
         )
     else:
+        full_response = ""
         async for event in generator:
             if await fastapi_request.is_disconnected():
-                return HTTPException(status_code=499, detail="client disconnected")
+                raise HTTPException(status_code=499, detail="client disconnected")
             elif isinstance(event, pal.model.EndEvent):
-                return format_end_event(event, event.full_response)
+                return {**format_end_event(event), "response": full_response}
+            else:
+                full_response += event.response
 
 
-def format_end_event(event, response):
+def format_end_event(event):
     return {
         "done_reason": event.done_reason,
-        "response": response,
         "done": True,
         "total_duration": event.total_duration,
         "load_duration": event.load_duration,

@@ -119,17 +119,20 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
             },
         )
     else:
+        full_response = ""
         async for event in generator:
             if fastapi_request is not None and await fastapi_request.is_disconnected():
-                return HTTPException(status_code=499, detail="client disconnected")
+                raise HTTPException(status_code=499, detail="client disconnected")
             elif isinstance(event, pal.model.EndEvent):
                 return {
                     **format_end_event(event),
                     "message": {
                         "role": "assistant",
-                        "content": event.full_response,
+                        "content": full_response,
                     },
                 }
+            else:
+                full_response += event.response
 
 
 def format_end_event(event):

@@ -5,7 +5,6 @@ import time
 from typing import List, Literal
 from typing import Any, Dict, List, Optional
 from fastapi import HTTPException
-from pydantic import BaseModel
 from time import time_ns
 import mlx_engine.model_kit
 import mlx_engine.vision
@@ -13,22 +12,8 @@ import mlx_engine.vision.vision_model_kit
 import huggingface_hub
 from datetime import datetime
 from typing import Dict
+from pal.events import ChunkEvent, EndEvent
 from pal.logger import logger
-
-
-class ChunkEvent(BaseModel):
-    response: str
-
-
-class EndEvent(BaseModel):
-    full_response: str
-    done_reason: Optional[str]
-    total_duration: int
-    load_duration: int
-    prompt_eval_count: int
-    prompt_eval_duration: int
-    eval_count: int
-    eval_duration: int
 
 
 class Model:
@@ -153,7 +138,6 @@ class Model:
 
         end_time = time_ns()
         yield EndEvent(
-            full_response=full_response,
             total_duration=end_time - start_time,
             load_duration=load_time - start_time,
             prompt_eval_count=len(tokens),
