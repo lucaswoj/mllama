@@ -5,7 +5,6 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 
 ## Now
 
-- [ ] Ensure command processes are killed when the HTTP connection is aborted
 - [ ] Switch to using `pip-tools`'s `requrements.in` file for dependency management or poetry
 - [ ] Rename "tools" for better disambituation with LLM tools, maybe call them "scripts" or "commands"?
 - [ ] Write better test suite
@@ -42,3 +41,4 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 - [ ] Create `delete` endpoint
 - [ ] Create `show` endpoint
 - [ ] Improve response data from tags endpoint
+- [ ] Ensure command processes are killed when the HTTP connection is aborted

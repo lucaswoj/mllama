@@ -1,13 +1,13 @@
 import asyncio
 import os
 import shlex
-from typing import Any
+from typing import Awaitable, Callable
 from fastapi import HTTPException
 from pal.events import ChunkEvent, EndEvent
 from pal.logger import logger
 
 
-async def generate(message: str, fastapi_request: Any):
+async def generate(message: str, is_aborted: Callable[[], Awaitable[bool]]):
     args = [
         "venv/bin/python",
         os.path.join(os.path.dirname(__file__), "tools_cli.py"),
@@ -32,7 +32,7 @@ async def generate(message: str, fastapi_request: Any):
             if line == b"":  # EOF reached
                 break
 
-            if await fastapi_request.is_disconnected():
+            if await is_aborted():
                 logger.warning(f"tool - {name} - killing process")
                 process.kill()
                 raise HTTPException(status_code=499, detail="client disconnected")

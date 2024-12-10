@@ -1,6 +1,6 @@
 from pal.main import app
 from pal.routers.chat import (
-    Request,
+    Params,
     Message,
 )
 from fastapi.testclient import TestClient
@@ -14,7 +14,7 @@ CLIENT = TestClient(app)
 def test_chat_simple():
     response = CLIENT.post(
         "/api/chat",
-        json=Request(
+        json=Params(
             model=MODEL,
             options={"max_tokens": MAX_TOKENS},
             stream=False,
@@ -33,7 +33,7 @@ def test_chat_simple():
 def test_chat_stream():
     CLIENT.post(
         "/api/chat",
-        json=Request(
+        json=Params(
             model=MODEL,
             options={"max_tokens": MAX_TOKENS},
             stream=True,
@@ -50,7 +50,7 @@ def test_chat_stream():
 def test_chat_schema():
     response = CLIENT.post(
         "/api/chat",
-        json=Request(
+        json=Params(
             model=MODEL,
             options={"max_tokens": MAX_TOKENS},
             stream=False,

@@ -11,7 +11,7 @@ from pal.model import Model
 import pal.model
 
 
-class Request(BaseModel):
+class Params(BaseModel):
     model: Annotated[str, Field(description="the model name")]
     format: Annotated[
         Optional[Literal["json"] | Dict[str, Any]],
@@ -96,39 +96,39 @@ router = APIRouter()
 
 
 @router.post("/api/generate")
-async def generate(request: Request, fastapi_request: fastapi.Request):
-    if request.system:
+async def generate(params: Params, request: fastapi.Request):
+    if params.system:
         raise HTTPException(status_code=501, detail="'system' not implemented")
 
-    if request.suffix:
+    if params.suffix:
         raise HTTPException(status_code=501, detail="'suffix' not implemented")
 
-    if request.images:
+    if params.images:
         raise HTTPException(status_code=501, detail="'images' not implemented")
 
-    if request.template:
+    if params.template:
         raise HTTPException(status_code=501, detail="'template' not implemented")
 
-    if request.raw:
+    if params.raw:
         raise HTTPException(status_code=501, detail="'raw' not implemented")
 
-    if request.context:
+    if params.context:
         raise HTTPException(status_code=501, detail="'context' not implemented")
 
-    if request.keep_alive == 0:
-        Model.unload(request.model)
+    if params.keep_alive == 0:
+        Model.unload(params.model)
         return {
-            "model": request.model,
+            "model": params.model,
             "created_at": datetime.now().isoformat(),
             "response": "",
             "done_reason": "unload",
             "done": True,
         }
 
-    if request.prompt is None:
-        Model.load(request.model, request.keep_alive)
+    if params.prompt is None:
+        Model.load(params.model, params.keep_alive)
         return {
-            "model": request.model,
+            "model": params.model,
             "created_at": datetime.now().isoformat(),
             "response": "",
             "done": True,
@@ -136,27 +136,27 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
 
     start_time = time_ns()
 
-    model = Model.load(request.model, request.keep_alive)
+    model = Model.load(params.model, params.keep_alive)
 
     generator = model.generate(
         start_time=start_time,
-        prompt=request.prompt,
-        options=request.options,
-        format=request.format,
+        prompt=params.prompt,
+        options=params.options,
+        format=params.format,
     )
 
-    if request.stream:
+    if params.stream:
 
         async def streaming_response():
             async for event in generator:
-                if await fastapi_request.is_disconnected():
+                if await request.is_disconnected():
                     return
                 elif isinstance(event, pal.model.EndEvent):
                     yield json.dumps(format_end_event(event))
                 elif isinstance(event, pal.model.ChunkEvent):
                     yield json.dumps(
                         {
-                            "model": request.model,
+                            "model": params.model,
                             "created_at": datetime.now().isoformat(),
                             "response": "",
                             "done": False,
@@ -175,7 +175,7 @@ async def generate(request: Request, fastapi_request: fastapi.Request):
     else:
         full_response = ""
         async for event in generator:
-            if await fastapi_request.is_disconnected():
+            if await request.is_disconnected():
                 raise HTTPException(status_code=499, detail="client disconnected")
             elif isinstance(event, pal.model.EndEvent):
                 return {**format_end_event(event), "response": full_response}

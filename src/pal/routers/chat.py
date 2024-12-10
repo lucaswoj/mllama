@@ -30,7 +30,7 @@ class Message(BaseModel):
     tool_calls: List[Tool] = []
 
 
-class Request(BaseModel):
+class Params(BaseModel):
     model: Annotated[str, Field(description="the model name")]
     format: Annotated[
         Optional[Literal["json"] | Dict[str, Any]],
@@ -64,43 +64,40 @@ router = APIRouter()
 
 
 @router.post("/api/chat")
-async def chat(request: Request, fastapi_request: fastapi.Request):
+async def chat(params: Params, request: fastapi.Request):
 
-    if request.tools:
+    if params.tools:
         raise HTTPException(status_code=501, detail="'tools' not implemented")
 
     last_message = (
-        request.messages[-1].content.strip() if request.messages[-1].content else ""
+        params.messages[-1].content.strip() if params.messages[-1].content else ""
     )
 
     start_time = time_ns()
 
     if last_message.startswith("/"):
-        generator = pal.tools.generate(last_message, fastapi_request)
+        generator = pal.tools.generate(last_message, request.is_disconnected)
     else:
-        model = Model.load(request.model, request.keep_alive)
+        model = Model.load(params.model, params.keep_alive)
         generator = model.generate(
             start_time=start_time,
-            prompt=model.template(conversation=request.messages),
-            options=request.options,
-            format=request.format,
+            prompt=model.template(conversation=params.messages),
+            options=params.options,
+            format=params.format,
         )
 
-    if request.stream:
+    if params.stream:
 
         async def streaming_response():
             async for event in generator:
-                if (
-                    fastapi_request is not None
-                    and await fastapi_request.is_disconnected()
-                ):
+                if await request.is_disconnected():
                     return
                 elif isinstance(event, pal.events.EndEvent):
                     yield json.dumps(format_end_event(event))
                 elif isinstance(event, pal.events.ChunkEvent):
                     yield json.dumps(
                         {
-                            "model": request.model,
+                            "model": params.model,
                             "created_at": datetime.now().isoformat(),
                             "message": {
                                 "role": "assistant",
@@ -122,7 +119,7 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
     else:
         full_response = ""
         async for event in generator:
-            if fastapi_request is not None and await fastapi_request.is_disconnected():
+            if request is not None and await request.is_disconnected():
                 raise HTTPException(status_code=499, detail="client disconnected")
             elif isinstance(event, pal.model.EndEvent):
                 return {

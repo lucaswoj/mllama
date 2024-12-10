@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from pal.main import app
 import fastapi
 from pal.routers.generate import (
-    Request,
+    Params,
 )
 
 
@@ -18,7 +18,7 @@ CLIENT = TestClient(app)
 def test_simple():
     response = CLIENT.post(
         "/api/generate",
-        json=Request(
+        json=Params(
             model=MODEL,
             prompt="Why is the sky blue?",
             options={"max_tokens": MAX_TOKENS},
@@ -32,7 +32,7 @@ def test_simple():
 def test_stream():
     CLIENT.post(
         "/api/generate",
-        json=Request(
+        json=Params(
             model=MODEL,
             prompt="Why is the sky blue?",
             options={"max_tokens": MAX_TOKENS},
@@ -44,7 +44,7 @@ def test_stream():
 def test_schema():
     response = CLIENT.post(
         "/api/generate",
-        json=Request(
+        json=Params(
             model=MODEL,
             prompt='Output a json object with the form {"foo": boolean}',
             options={"max_tokens": MAX_TOKENS},

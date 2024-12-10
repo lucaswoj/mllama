@@ -24,13 +24,13 @@ class TagInfo(BaseModel):
     details: TagDetails
 
 
-class TagsResponse(BaseModel):
+class Response(BaseModel):
     models: List[TagInfo]
 
 
 @router.get("/api/tags")
 def tags():
-    return TagsResponse(
+    return Response(
         models=[
             TagInfo(
                 name=f"{repo.repo_id}",
