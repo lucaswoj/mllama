@@ -1,13 +1,10 @@
+import asyncio
 import os
-
-from fastapi import HTTPException
-from pal.logger import logger
-import pal.model
 import shlex
-
-
-import subprocess
 from typing import Any
+from fastapi import HTTPException
+from pal.events import ChunkEvent, EndEvent
+from pal.logger import logger
 
 
 async def generate(message: str, fastapi_request: Any):
@@ -19,27 +16,29 @@ async def generate(message: str, fastapi_request: Any):
     name = args[2]
 
     logger.info(f"tool - {name} - start with args: {args[3:]}")
-    process = subprocess.Popen(
-        args,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
+
+    process = await asyncio.create_subprocess_exec(
+        *args,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.STDOUT,
     )
 
     if process.stdout is None:
         raise RuntimeError("Process has no stdout")
 
     try:
-        for line in iter(process.stdout.readline, ""):
+        while True:
+            line = await process.stdout.readline()
+            if line == b"":  # EOF reached
+                break
+
             if await fastapi_request.is_disconnected():
-                logger.warning(f"tool - {args[2]} - killing process")
+                logger.warning(f"tool - {name} - killing process")
                 process.kill()
                 raise HTTPException(status_code=499, detail="client disconnected")
-            yield pal.model.ChunkEvent(
-                response=line + "\n",
-            )
+
+            yield ChunkEvent(response=line.decode() + "\n")
     finally:
-        process.stdout.close()
-        process.wait()
-        yield pal.model.EndEvent()
+        await process.wait()
+        yield EndEvent()
         logger.info(f"tool - {name} - end")

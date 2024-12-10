@@ -7,6 +7,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional, List, Dict, Any
 import pal
+import pal.events
 from pal.model import Model
 import pal.tools
 
@@ -94,9 +95,9 @@ async def chat(request: Request, fastapi_request: fastapi.Request):
                     and await fastapi_request.is_disconnected()
                 ):
                     return
-                elif isinstance(event, pal.model.EndEvent):
+                elif isinstance(event, pal.events.EndEvent):
                     yield json.dumps(format_end_event(event))
-                elif isinstance(event, pal.model.ChunkEvent):
+                elif isinstance(event, pal.events.ChunkEvent):
                     yield json.dumps(
                         {
                             "model": request.model,
