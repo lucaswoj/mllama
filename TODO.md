@@ -17,7 +17,7 @@
 - [ ] Add support for `suffix` param on generate endpoint
 - [ ] Test compatability against continue.dev
 - [ ] Test compatability against OpenWebUI
-- [ ] Test compatability against Enchanted
+- [ ] Add support for OpenAI compatability endpoints
 
 # Someday Maybe
 

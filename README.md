@@ -5,8 +5,8 @@ It leverages uses LM Studio's [`lmstudio-ai/mlx-engine`](https://github.com/lmst
 
 ## Features
 
-  *	**Ollama Protocol Compatibility**: Seamlessly integrates all clients supporting the Ollama protocol.
-  *	**Powered by MLX**: Uses Apple’s MLX framework for cutting-edge performance on Apple Silicon. Prompt eval time is signficiantly faster than Ollama.
+  *	**Ollama Compatibility**: Seamlessly integrates all clients that support the Ollama protocol.
+  *	**Powered by MLX**: Uses Apple’s MLX framework for cutting-edge performance on Apple Silicon. Prompt evaluation time is signficiantly faster than on Ollama.
 
 ## Installation
 
@@ -30,7 +30,7 @@ make start
 
 ## Contributing
 
-Contributions are welcome! Open an issue or submit a pull request with improvements or bug fixes.
+Contributions are welcome! Open an issue or submit a pull request with improvements or bug fixes. Be nice.
 
 ## License
 
