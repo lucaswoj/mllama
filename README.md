@@ -5,10 +5,8 @@ It leverages uses LM Studio's [`lmstudio-ai/mlx-engine`](https://github.com/lmst
 
 ## Features
 
-  *	**Ollama Protocol Compatibility**: Seamlessly integrates with clients using the Ollama protocol.
-  *	**Powered by MLX**: Utilizes Apple’s cutting-edge MLX framework for efficient, GPU-accelerated model execution on Apple Silicon.
-  *	**Minimalism**: Is a small codebase focused on essential functionality.
-  *	**OpenAPI Specification**: Provides API documentation and schemas using FastAPI’s built-in OpenAPI support.
+  *	**Ollama Protocol Compatibility**: Seamlessly integrates all clients supporting the Ollama protocol.
+  *	**Powered by MLX**: Uses Apple’s MLX framework for cutting-edge performance on Apple Silicon. Prompt eval time is signficiantly faster than Ollama.
 
 ## Installation
 
