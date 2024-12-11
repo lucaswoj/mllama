@@ -2,6 +2,7 @@ start:
 	venv/bin/uvicorn src.mllama.main:app --reload --log-level info
 
 install:
+	brew install python@3.11
 	python3.11 -m venv venv
 	venv/bin/pip install -r requirements.txt
 	venv/bin/pip install -r vendor/mlx-engine/requirements.txt

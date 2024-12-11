@@ -10,11 +10,6 @@ It leverages uses LM Studio's [`lmstudio-ai/mlx-engine`](https://github.com/lmst
 
 ## Installation
 
-Install system prerequsities:
-```
-brew install python@3.11 make
-```
-
 Clone the repository:
 
 ```
@@ -22,8 +17,9 @@ git clone https://github.com/lucaswoj/mllama.git
 cd mllama
 ```
 
-Install Python dependencies:
+Install dependencies:
 ```
+brew install make
 make install
 ```
 
