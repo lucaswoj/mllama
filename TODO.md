@@ -1,5 +1,6 @@
 # Next
 
+- [ ] Set up PR acceptance tests via GitHub Actions
 - [ ] Switch to using `pip-tools`'s `requrements.in` file for dependency management
 - [ ] Add support for more `options` param properties on chat and generate endpoints, tune the defaults
 - [ ] Add hardcoded chat templates, stop strings, and other config for models
