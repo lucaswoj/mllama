@@ -8,6 +8,10 @@ It leverages uses LM Studio's [`lmstudio-ai/mlx-engine`](https://github.com/lmst
   *	**Ollama Compatibility**: Seamlessly integrates all clients that support the Ollama protocol.
   *	**Powered by MLX**: Uses Apple’s MLX framework for cutting-edge performance on Apple Silicon. Prompt evaluation time is signficiantly faster than on Ollama.
 
+## Development Status
+
+This project is in early development but is able to support simple chat clients, such as Enchanted, without issue. See `TODO.md` for open tasks.
+
 ## Installation
 
 Clone the repository:
