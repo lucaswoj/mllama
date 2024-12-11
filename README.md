@@ -5,37 +5,31 @@ It leverages uses the same codebase as LM Studio, `lmstudio-ai/mlx-engine`, to s
 
 ## Features
 
-  •	Ollama Protocol Compatibility: Seamlessly integrates with clients using the Ollama protocol.
-  •	Powered by MLX: Utilizes Apple’s cutting-edge MLX framework for efficient, GPU-accelerated model execution on Apple Silicon.
-  •	Minimalism: Is a small codebase focused on essential functionality.
-  •	OpenAPI Specification: Provides API documentation and schemas using FastAPI’s built-in OpenAPI support.
-
-## Requirements
-
-	•	Apple Silicon Mac (required for MLX)
-	•	Python 3.11 (required by mlx-engine)
+  *	**Ollama Protocol Compatibility**: Seamlessly integrates with clients using the Ollama protocol.
+  *	**Powered by MLX**: Utilizes Apple’s cutting-edge MLX framework for efficient, GPU-accelerated model execution on Apple Silicon.
+  *	**Minimalism**: Is a small codebase focused on essential functionality.
+  *	**OpenAPI Specification**: Provides API documentation and schemas using FastAPI’s built-in OpenAPI support.
 
 ## Installation
 
-Clone the Repository:
+Install system prerequsities:
+```
+brew install python@3.11 make
+```
+
+Clone the repository:
 
 ```
 git clone https://github.com/lucaswoj/mllama.git
 cd mllama
 ```
 
-Create virtual environment:
+Install Python dependencies:
 ```
-python3.11 -m venv venv
-source venv/bin/activate
-```
-
-Install Dependencies:
-```
-pip install -r requirements.txt
+make install
 ```
 
-Start Server:
+Start server:
 ```
 make start
 ```
