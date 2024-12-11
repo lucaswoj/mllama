@@ -1,7 +1,7 @@
 # Mllama
 
 Mllama is an Ollama-compatible server powered by MLX.
-It leverages uses the same codebase as LM Studio, `lmstudio-ai/mlx-engine`, to serve powerful machine learning models performantly on Apple Silicon.
+It leverages uses LM Studio's [`lmstudio-ai/mlx-engine`](https://github.com/lmstudio-ai/mlx-engine) to performatly serve LLM models on Apple Silicon to Ollama compatible clients.
 
 ## Features
 
