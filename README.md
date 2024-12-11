@@ -1,32 +1,49 @@
+# Mllama
+
+Mllama is an Ollama-compatible server powered by MLX.
+It leverages uses the same codebase as LM Studio, `lmstudio-ai/mlx-engine`, to serve powerful machine learning models performantly on Apple Silicon.
+
+## Features
+
+  •	Ollama Protocol Compatibility: Seamlessly integrates with clients using the Ollama protocol.
+  •	Powered by MLX: Utilizes Apple’s cutting-edge MLX framework for efficient, GPU-accelerated model execution on Apple Silicon.
+  •	Minimalism: Is a small codebase focused on essential functionality.
+  •	OpenAPI Specification: Provides API documentation and schemas using FastAPI’s built-in OpenAPI support.
+
+## Requirements
+
+	•	Apple Silicon Mac (required for MLX)
+	•	Python 3.11 (required by mlx-engine)
+
+## Installation
+
+Clone the Repository:
+
+```
+git clone https://github.com/lucaswoj/mllama.git
+cd mllama
+```
+
+Create virtual environment:
+```
+python3.11 -m venv venv
+source venv/bin/activate
+```
+
+Install Dependencies:
 ```
 pip install -r requirements.txt
-pip3 install --pre torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/nightly/cpu
 ```
 
-## Now
+Start Server:
+```
+make start
+```
 
-- [ ] Switch to using `pip-tools`'s `requrements.in` file for dependency management or poetry
-- [ ] Investigate different token counts vs ollama
-- [ ] Add support for more `options` param properties on chat and generate endpoints, tune the defaults
-- [ ] Set up a new project for using plugins / pipelines / tools
+## Contributing
 
-## Later
+Contributions are welcome! Open an issue or submit a pull request with improvements or bug fixes.
 
-- [ ] Publish to GitHub
-- [ ] Measure unit test coverage
-- [ ] Improve ability to handle concurrent requests
-- [ ] Add more chat templates and model configurations
-- [ ] Restore strict mypy import checking
-- [ ] Annotate all BaseModel fields with docs
-- [ ] Use pydantic to declare types on all outputs
-- [ ] Add support for `tools` param on chat endpoint
-- [ ] Add support for `images` param on chat and generate endpoints
-- [ ] Add support for `template` / `raw` param on generate endpoint
-- [ ] Add support for `images` option on chat and generate endpoints
-- [ ] Add support for `suffix` param on generate endpoint
-- [ ] Add progress messages to pull endpoint
-- [ ] Create `ps` endpoint
-- [ ] Create `embed` endpoint
-- [ ] Create `delete` endpoint
-- [ ] Create `show` endpoint
-- [ ] Improve response data from tags endpoint
+## License
+
+This project is licensed under the MIT License. See LICENSE.md for details.

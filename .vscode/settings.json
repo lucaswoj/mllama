@@ -5,10 +5,6 @@
 
   "editor.formatOnSave": true,
   "editor.formatOnSaveMode": "file",
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-
-  "[python]": {
-    "editor.indentSize": 4,
-    "editor.defaultFormatter": "ms-python.black-formatter"
-  }
+  "editor.indentSize": 4,
+  "editor.defaultFormatter": "ms-python.black-formatter"
 }
